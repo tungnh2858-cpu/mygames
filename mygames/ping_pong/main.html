@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Paddle Arena - V5 Plus</title>
+    <link rel="icon" id="dynamic-favicon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9Imdsb3ciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzYzNjZmaSIgc3RvcC1vcGFjaXR5PSIxIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMDgwOTBmIiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0idXJsKCNnbG93KSIvPjxwYXRoIGQ9Ik01MCAxNSBMMzAgNjUgTDcwIDY1IFoiIGZpbGw9IiM4MThjZjgiIHN0cm9rZT0iI2MwODRmYyIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMTIiIGZpbGw9IiMzOGJkZjgiLz48cGF0aCBkPSJNNTAgNSBMNTUgMjUgTDQ1IDI1IFoiIGZpbGw9IiNlZjQ0NDQiLz48L3N2Zz4=">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#08090f',
+                        lightbg: '#f1f5f9'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Rajdhani', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; user-select: none; overflow-x: hidden; }
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 16, 21, 0.5); }
+        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
+        
+        /* Dark Theme Glass Panel */
+        .dark .glass-panel { background: rgba(17, 18, 30, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.2); }
+        .dark body { background-color: #08090f; color: #e2e8f0; }
+
+        /* Light Theme Glass Panel */
+        .light .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.3); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .light body { background-color: #f1f5f9; color: #0f172a; }
+        .light .text-gray-300, .light .text-gray-400 { color: #475569 !important; }
+        .light .bg-slate-900\/80, .light .bg-slate-900\/60, .light .bg-slate-900\/50, .light .bg-slate-900 { background-color: rgba(241, 245, 249, 0.9) !important; border-color: rgba(203, 213, 225, 0.8) !important; color: #0f172a !important; }
+        .light .bg-slate-950 { background-color: #e2e8f0 !important; }
+        .light .bg-slate-800 { background-color: #cbd5e1 !important; color: #0f172a !important; }
+
+        .tab-btn.active { background-color: rgba(99, 102, 241, 0.25); border-color: #6366f1; color: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+        @keyframes pulse-slow { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.02); } }
+        .pulse-effect { animation: pulse-slow 3s infinite ease-in-out; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-1.5 md:p-3 relative">
+
+    <!-- TOP BAR -->
+    <div class="w-full max-w-7xl flex flex-wrap justify-between items-center gap-3 glass-panel rounded-2xl p-3 mb-2 z-10 relative">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-indigo-600 to-purple-600 border-2 border-indigo-400 p-2.5 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.6)] relative overflow-hidden">
+                <i class="fa-solid fa-meteor text-xl text-white animate-pulse relative z-10"></i>
+                <div class="absolute inset-0 bg-white/20 transform -skew-x-12 animate-[slide_2s_infinite]"></div>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-500 orbitron leading-none">PADDLE ARENA V5+</h1>
+                <span class="text-[10px] text-indigo-400 font-bold tracking-widest uppercase" id="player-title">Tân Thủ Bắt Bóng</span>
+            </div>
+        </div>
+
+        <!-- Chức Năng Data & Daily -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="window.claimDailyReward()" class="px-3 py-1.5 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-500 hover:to-rose-400 text-white font-bold text-xs rounded-lg shadow-md transition-all orbitron pulse-effect border border-pink-400/50"><i class="fa-solid fa-gift"></i> QUÀ DAILY</button>
+            <button onclick="window.downloadJSONSave()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg shadow-md transition-all orbitron"><i class="fa-solid fa-download"></i> LƯU JSON</button>
+            <button onclick="document.getElementById('import-json-input').click()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg shadow-md transition-all orbitron"><i class="fa-solid fa-upload"></i> NẠP JSON</button>
+            <input type="file" id="import-json-input" accept=".json" class="hidden" onchange="window.importJSONSave(event)">
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-1.5 bg-cyan-500/10 px-3 py-1.5 rounded-xl border border-cyan-500/30">
+                <i class="fa-solid fa-gem text-cyan-400 text-base animate-bounce"></i>
+                <div class="text-left"><span class="text-[9px] text-cyan-400 block leading-none font-bold">KIM CƯƠNG</span><span id="hud-diamonds" class="text-sm font-black text-cyan-400 orbitron leading-none">0</span></div>
+            </div>
+            <div class="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1.5 rounded-xl border border-yellow-500/30">
+                <i class="fa-solid fa-coins text-yellow-400 text-base"></i>
+                <div class="text-left"><span class="text-[9px] text-yellow-500 block leading-none font-bold">TIỀN XU</span><span id="hud-coins" class="text-sm font-black text-yellow-400 orbitron leading-none">0</span></div>
+            </div>
+            <div class="flex items-center gap-2 bg-purple-500/10 px-3 py-1 rounded-xl border border-purple-500/30 min-w-[110px] relative">
+                <div id="buff-indicator" class="absolute -top-2 -right-2 bg-pink-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full hidden animate-bounce">x2 XU</div>
+                <div class="text-left w-full">
+                    <div class="flex justify-between text-[9px] font-bold text-purple-400 leading-none"><span>EXP LEVEL</span><span id="hud-level-val" class="text-purple-400 font-black">LV.1</span></div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden"><div id="exp-bar-inner" class="bg-purple-500 h-full transition-all duration-300" style="width: 0%;"></div></div>
+                </div>
+            </div>
+            
+            <!-- Quick Theme Switch Toggle -->
+            <button id="btn-theme-toggle" onclick="window.toggleTheme()" class="p-2 bg-slate-800 text-yellow-400 hover:text-yellow-300 rounded-xl border border-slate-700 transition-all flex items-center justify-center" title="Đổi Chế Độ Sáng/Tối">
+                <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
+            </button>
+
+            <!-- Settings Button -->
+            <button id="btn-open-settings" onclick="window.openSettingsModal()" class="p-2 bg-slate-800 text-slate-300 hover:text-white rounded-xl border border-slate-700 hover:border-indigo-500 transition-all flex items-center justify-center" title="Cài Đặt Game">
+                <i class="fa-solid fa-gear text-sm animate-[spin_10s_linear_infinite]"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN INTERACTIVE SECTION -->
+    <div class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-4 gap-3 flex-grow z-10 relative">
+        
+        <!-- COLUMN 1: PADDLES MANAGER -->
+        <div class="lg:col-span-1 flex flex-col gap-3">
+            <div class="glass-panel rounded-2xl p-3 flex-grow flex flex-col">
+                <div class="flex justify-between items-center border-b border-indigo-500/20 pb-2 mb-2">
+                    <h2 class="text-base font-black text-cyan-400 uppercase orbitron tracking-wider"><i class="fa-solid fa-arrows-left-right mr-1.5"></i>Kho Paddle</h2>
+                </div>
+
+                <!-- 3 Chế độ Gacha -->
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-yellow-500/30 mb-2">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-[11px] font-black text-yellow-400 orbitron"><i class="fa-solid fa-box-open mr-1 animate-bounce"></i>Gacha Paddle</span>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="window.buyRandomPaddle('poor')" class="w-full py-1 bg-slate-700 text-white font-bold text-[10px] rounded hover:bg-slate-600 transition-all orbitron">NGHÈO (100 <i class="fa-solid fa-coins text-[8px]"></i>)</button>
+                        <div class="flex gap-1">
+                            <button onclick="window.buyRandomPaddle('normal')" class="flex-1 py-1.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-black text-[10px] rounded shadow-md hover:from-blue-500 hover:to-blue-400 transition-all orbitron">THƯỜNG (1.000 <i class="fa-solid fa-coins text-[8px]"></i>)</button>
+                            <button onclick="window.buyRandomPaddle('premium')" class="flex-1 py-1.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-slate-950 font-black text-[10px] rounded shadow-md hover:from-yellow-400 hover:to-amber-500 transition-all orbitron">XỊN (10.000 <i class="fa-solid fa-coins text-[8px]"></i>)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paddle-selector-list" class="flex flex-col gap-2 overflow-y-auto max-h-[480px] pr-1 flex-grow"></div>
+            </div>
+        </div>
+
+        <!-- COLUMN 2 & 3: GAME SCREEN & LIVE CANVAS -->
+        <div class="lg:col-span-2 flex flex-col gap-3 relative">
+            <div class="relative w-full aspect-[4/3] bg-slate-950 rounded-2xl border-2 border-indigo-500/40 overflow-hidden shadow-2xl shadow-indigo-900/20">
+                <canvas id="game-canvas" class="w-full h-full block cursor-none"></canvas>
+
+                <!-- REAL-TIME OVERLAY ON CANVAS -->
+                <div class="absolute top-2.5 left-2.5 right-2.5 flex justify-between pointer-events-none z-10 font-bold text-xs orbitron" id="live-hud-layer">
+                    <div class="flex flex-col gap-1 bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                        <div class="flex items-center gap-1.5 text-white"><i class="fa-solid fa-heart text-red-500"></i> MẠNG: <span id="canvas-lives" class="text-red-400 text-sm font-black">10.0</span></div>
+                        <div class="flex items-center gap-1.5 text-white"><i class="fa-solid fa-shield-halved text-green-400"></i> MÁU: <span id="canvas-hp" class="text-green-400 text-sm font-black">750/750</span></div>
+                    </div>
+                    
+                    <div class="flex gap-2 pointer-events-auto bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 self-start">
+                        <button onclick="window.togglePauseGame()" id="btn-pause-game" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-[10px] transition-all"><i class="fa-solid fa-pause"></i> PAUSE</button>
+                        <button onclick="window.goHomeFromGame()" class="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-[10px] transition-all"><i class="fa-solid fa-house"></i> HOME</button>
+                    </div>
+
+                    <div id="recording-indicator" class="absolute top-10 left-1/2 transform -translate-x-1/2 bg-red-600/80 px-2 py-1 rounded-full text-[9px] font-black text-white hidden animate-pulse border border-red-400"><i class="fa-solid fa-circle text-[6px] mr-1"></i> REC</div>
+
+                    <div class="flex flex-col items-end gap-1 bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                        <div class="text-white flex items-center gap-1"><i class="fa-solid fa-crosshairs text-cyan-400"></i> ĐIỂM SỐ: <span id="canvas-score" class="text-cyan-400 text-sm font-black">0</span></div>
+                        <div class="text-yellow-400 flex items-center gap-1"><i class="fa-solid fa-coins"></i> XU MÀN NÀY: <span id="canvas-coins" class="text-yellow-400 text-sm font-black">0</span></div>
+                    </div>
+                </div>
+
+                <div class="absolute top-2.5 left-2.5 right-2.5 flex justify-between pointer-events-none z-10 font-bold text-xs orbitron hidden" id="pvp-hud-layer">
+                    <div class="bg-slate-950/80 p-2 rounded-xl border border-blue-500 flex items-center gap-2"><span class="text-blue-400 block font-bold">P1 (TRÁI):</span><span id="pvp-p1-score" class="text-lg font-black text-white">0</span></div>
+                    <div class="flex gap-2 pointer-events-auto bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 self-start">
+                        <button onclick="window.togglePauseGame()" id="btn-pause-pvp" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-[10px] transition-all"><i class="fa-solid fa-pause"></i> PAUSE</button>
+                        <button onclick="window.goHomeFromGame()" class="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-[10px] transition-all"><i class="fa-solid fa-house"></i> HOME</button>
+                    </div>
+                    <div class="bg-slate-950/80 p-2 rounded-xl border border-red-500 flex items-center gap-2"><span class="text-red-400 block font-bold">P2 (PHẢI):</span><span id="pvp-p2-score" class="text-lg font-black text-white">0</span></div>
+                </div>
+
+                <!-- Overlay Start -->
+                <div id="start-overlay" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center z-20 overflow-y-auto">
+                    <div class="pulse-effect mb-2"><i class="fa-solid fa-gamepad text-4xl text-indigo-400 mb-1"></i><h2 class="text-2xl font-black orbitron tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-500 leading-none">PADDLE ARENA</h2></div>
+                    <div class="flex gap-2 mb-3 bg-slate-900 p-1.5 rounded-xl border border-indigo-500/20 w-full max-w-sm">
+                        <button id="mode-solo-btn" onclick="window.setGameMode('solo')" class="flex-1 py-1.5 rounded-lg text-xs font-bold orbitron uppercase transition-all bg-indigo-600 text-white">Chơi Đơn</button>
+                        <button id="mode-pvp-btn" onclick="window.setGameMode('pvp')" class="flex-1 py-1.5 rounded-lg text-xs font-bold orbitron uppercase transition-all text-gray-400 hover:text-white">PVP 2 Người</button>
+                    </div>
+                    <div id="selected-paddle-preview" class="mb-4 p-2 bg-slate-900/80 rounded-xl border border-indigo-500/20 max-w-sm w-full">
+                        <span class="text-[9px] text-gray-400 uppercase block mb-0.5">Paddle đang chọn</span>
+                        <h3 id="preview-name" class="text-base font-black text-cyan-400 orbitron">PHỔ THÔNG</h3>
+                        <p id="preview-desc" class="text-[10px] text-gray-300">Paddle cân bằng, cơ bản cho tân thủ.</p>
+                    </div>
+                    <div id="pvp-setup-panel" class="hidden mb-4 p-3 bg-slate-900/80 rounded-xl border border-indigo-500/20 max-w-sm w-full text-left">
+                        <span class="text-[10px] text-purple-400 font-bold uppercase orbitron mb-1 block text-center">CÀI ĐẶT TRẬN ĐẤU PVP</span>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div><label class="text-[9px] text-gray-400 block uppercase font-bold">Player 1 (W/S)</label><select id="pvp-p1-paddle" class="w-full bg-slate-950 border border-slate-800 text-white rounded p-1 mt-0.5 font-bold"></select></div>
+                            <div><label class="text-[9px] text-gray-400 block uppercase font-bold">Player 2 (↑/↓)</label><select id="pvp-p2-paddle" class="w-full bg-slate-950 border border-slate-800 text-white rounded p-1 mt-0.5 font-bold"></select></div>
+                        </div>
+                        <div class="mt-2 text-xs"><label class="text-[9px] text-gray-400 block uppercase font-bold">Điểm số giành chiến thắng</label><select id="pvp-target-score" class="w-full bg-slate-950 border border-slate-800 text-white rounded p-1 mt-0.5 font-bold orbitron"><option value="3">3 Điểm (Nhanh)</option><option value="5" selected>5 Điểm (Chuẩn)</option><option value="10">10 Điểm (Dài)</option></select></div>
+                    </div>
+                    <button id="btn-play" onclick="window.startGame()" class="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-base rounded-xl shadow-lg shadow-emerald-500/30 hover:from-emerald-400 hover:to-teal-500 transform hover:scale-105 active:scale-95 transition-all orbitron tracking-widest">
+                        BẮT ĐẦU CHƠI <i class="fa-solid fa-play ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- Overlay Game Over -->
+                <div id="gameover-overlay" class="absolute inset-0 bg-red-950/95 hidden flex flex-col items-center justify-center p-5 text-center z-30">
+                    <i class="fa-solid fa-skull-crossbones text-5xl text-red-500 mb-2 animate-bounce"></i>
+                    <h2 class="text-4xl font-black orbitron tracking-widest text-red-500 mb-1" id="end-title-text">GAME OVER</h2>
+                    <p class="text-sm text-gray-300 mb-4 font-bold" id="gameover-reason">Cả Máu và Mạng của bạn đã cạn kiệt!</p>
+                    <div class="bg-black/40 px-4 py-3 rounded-xl border border-red-500/30 mb-4 w-full max-w-sm grid grid-cols-3 gap-2" id="gameover-stats-block">
+                        <div><span class="text-[10px] text-gray-400 block font-bold">BEST SCORE</span><span id="best-score-display" class="text-base font-bold orbitron text-cyan-400">0</span></div>
+                        <div><span class="text-[10px] text-gray-400 block font-bold">ĐIỂM TRẬN</span><span id="end-score" class="text-base font-bold orbitron text-white">0</span></div>
+                        <div><span class="text-[10px] text-gray-400 block font-bold">XU ĐANG CÓ</span><span id="end-coins" class="text-base font-bold orbitron text-yellow-400">0</span></div>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-3 w-full max-w-sm">
+                        <button id="btn-restart" onclick="window.startGame()" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-xs rounded-lg shadow-md hover:from-emerald-400 hover:to-teal-500 transition-all orbitron">TIẾP TỤC <i class="fa-solid fa-forward"></i></button>
+                        <button onclick="window.downloadGameplayVideo()" class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs rounded-lg shadow-md transition-all flex items-center justify-center gap-1.5 orbitron"><i class="fa-solid fa-video"></i> TẢI CLIP</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skill Cooldowns HUD -->
+            <div class="grid grid-cols-4 gap-2" id="normal-skills-cooldown">
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center relative overflow-hidden h-[54px] flex flex-col justify-center" id="skill-card-z">
+                    <div id="cooldown-overlay-z" class="absolute inset-0 bg-black/60 transition-all duration-100" style="height: 0%;"></div>
+                    <div class="text-[10px] text-cyan-400 font-bold uppercase orbitron z-10">CHIÊU Z</div>
+                    <div class="text-[11px] font-black text-white orbitron z-10 leading-tight" id="cooldown-z">SẴN SÀNG</div>
+                </div>
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center relative overflow-hidden h-[54px] flex flex-col justify-center" id="skill-card-x">
+                    <div id="cooldown-overlay-x" class="absolute inset-0 bg-black/60 transition-all duration-100" style="height: 0%;"></div>
+                    <div class="text-[10px] text-purple-400 font-bold uppercase orbitron z-10">CHIÊU X</div>
+                    <div class="text-[11px] font-black text-white orbitron z-10 leading-tight" id="cooldown-x">SẴN SÀNG</div>
+                </div>
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center relative overflow-hidden h-[54px] flex flex-col justify-center opacity-50" id="skill-card-c">
+                    <div id="cooldown-overlay-c" class="absolute inset-0 bg-black/60 transition-all duration-100" style="height: 0%;"></div>
+                    <div class="text-[10px] text-pink-400 font-bold uppercase orbitron z-10">CHIÊU C</div>
+                    <div class="text-[11px] font-black text-white orbitron z-10 leading-tight" id="cooldown-c">---</div>
+                </div>
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 text-center relative overflow-hidden h-[54px] flex flex-col justify-center opacity-50" id="skill-card-v">
+                    <div id="cooldown-overlay-v" class="absolute inset-0 bg-black/60 transition-all duration-100" style="height: 0%;"></div>
+                    <div class="text-[10px] text-emerald-400 font-bold uppercase orbitron z-10">CHIÊU V</div>
+                    <div class="text-[11px] font-black text-white orbitron z-10 leading-tight" id="cooldown-v">---</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 4: UPGRADES, ITEMS, BOTS, PET SHOP & QUESTS -->
+        <div class="lg:col-span-1 flex flex-col gap-3">
+            <div class="glass-panel rounded-2xl p-3 flex-grow flex flex-col">
+                <div class="flex gap-1 mb-2 border-b border-indigo-500/20 pb-2 overflow-x-auto overflow-y-hidden" style="-ms-overflow-style: none; scrollbar-width: none;">
+                    <button id="tab-upgrades-btn" onclick="window.switchTab('upgrades')" class="tab-btn active flex-1 text-center px-1.5 py-1 rounded-md font-bold text-[10px] uppercase border border-transparent transition-all"><i class="fa-solid fa-circle-up"></i> Nâng</button>
+                    <button id="tab-store-btn" onclick="window.switchTab('store')" class="tab-btn flex-1 text-center px-1.5 py-1 rounded-md font-bold text-[10px] uppercase border border-transparent transition-all"><i class="fa-solid fa-shop"></i> Đồ</button>
+                    <button id="tab-bots-btn" onclick="window.switchTab('bots')" class="tab-btn flex-1 text-center px-1.5 py-1 rounded-md font-bold text-[10px] uppercase border border-transparent transition-all"><i class="fa-solid fa-robot"></i> Bot</button>
+                    <button id="tab-pets-btn" onclick="window.switchTab('pets')" class="tab-btn flex-1 text-center px-1.5 py-1 rounded-md font-bold text-[10px] uppercase border border-transparent transition-all"><i class="fa-solid fa-paw"></i> Pet</button>
+                    <button id="tab-quests-btn" onclick="window.switchTab('quests')" class="tab-btn flex-1 text-center px-1.5 py-1 rounded-md font-bold text-[10px] uppercase border border-transparent transition-all"><i class="fa-solid fa-list-check"></i> NV</button>
+                </div>
+
+                <!-- Upgrades Panel -->
+                <div id="panel-upgrades" class="flex flex-col gap-2 flex-grow overflow-y-auto h-[400px] pr-1">
+                    <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-1"><span class="text-[10px] font-bold text-gray-300 uppercase">Hiệu suất Xu (+0.25)</span><span id="up-coin-level" class="text-[9px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">Cấp 1</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-black text-white orbitron" id="up-coin-val">1.0x xu</span><button id="btn-up-coin" onclick="window.buyUpgrade('coin')" class="px-2 py-1 bg-yellow-500 text-slate-950 font-black text-[10px] rounded hover:bg-yellow-400 transition-all"><span id="up-coin-cost" class="orbitron">100</span> <i class="fa-solid fa-coins"></i></button></div>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-1"><span class="text-[10px] font-bold text-gray-300 uppercase">Tốc độ Paddle (+10%)</span><span id="up-speed-level" class="text-[9px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full font-bold">Cấp 1</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-black text-white orbitron" id="up-speed-val">8.0 px/f</span><button id="btn-up-speed" onclick="window.buyUpgrade('speed')" class="px-2 py-1 bg-cyan-500 text-slate-950 font-black text-[10px] rounded hover:bg-cyan-400 transition-all"><span id="up-speed-cost" class="orbitron">150</span> <i class="fa-solid fa-coins"></i></button></div>
+                    </div>
+                    <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-1"><span class="text-[10px] font-bold text-gray-300 uppercase">Máu Paddle (+150 HP)</span><span id="up-hp-level" class="text-[9px] bg-emerald-500/20 text-emerald-400 font-bold">Cấp 1</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-black text-white orbitron" id="up-hp-val">750 HP</span><button id="btn-up-hp" onclick="window.buyUpgrade('hp')" class="px-2 py-1 bg-emerald-500 text-slate-950 font-black text-[10px] rounded hover:bg-emerald-400 transition-all"><span id="up-hp-cost" class="orbitron">200</span> <i class="fa-solid fa-coins"></i></button></div>
+                    </div>
+                </div>
+
+                <!-- Store Panel -->
+                <div id="panel-store" class="hidden flex flex-col gap-2 flex-grow overflow-y-auto h-[400px] pr-1"></div>
+
+                <!-- BOTS Panel -->
+                <div id="panel-bots" class="hidden flex flex-col gap-2 flex-grow overflow-y-auto h-[400px] pr-1">
+                    <div class="flex justify-between items-center bg-slate-900/30 p-2 rounded-xl border border-slate-800 text-xs mb-1">
+                        <div>SL BOT KHO: <strong id="current-bots-count" class="text-emerald-400 orbitron">0</strong></div>
+                        <button onclick="window.sortBotsInventory()" class="px-2 py-1 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/40 border border-indigo-500/40 font-bold text-[10px] rounded transition-all"><i class="fa-solid fa-arrow-up-wide-short"></i> SẮP XẾP</button>
+                    </div>
+                    <div class="flex gap-1 mb-1">
+                        <button onclick="window.buyRandomBot()" class="flex-1 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-[10px] rounded transition-all orbitron">GACHA BOT (2.000 <i class="fa-solid fa-coins text-[8px]"></i>)</button>
+                        <button onclick="window.openCraftBotModal()" class="flex-1 py-1.5 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black text-[10px] rounded transition-all orbitron">GHÉP BOT</button>
+                    </div>
+                    
+                    <span class="text-[10px] text-gray-400 uppercase block mt-1 font-bold">Đội Hình Xung Trận (Max 3)</span>
+                    <div id="squad-bots-list" class="flex flex-col gap-1.5 min-h-[40px] border border-dashed border-indigo-500/30 rounded p-1 mb-2 bg-indigo-900/10"></div>
+                    
+                    <span class="text-[10px] text-yellow-400 uppercase block mt-1 font-bold"><i class="fa-solid fa-shop"></i> Cửa Hàng Bot Trực Tiếp</span>
+                    <div id="bot-shop-list" class="grid grid-cols-2 gap-2 border border-slate-700 p-2 rounded-xl bg-slate-900/40 mb-2 shadow-inner"></div>
+
+                    <span class="text-[10px] text-gray-400 uppercase block font-bold">Kho Lưu Trữ Bot</span>
+                    <div id="bot-inventory-list" class="flex flex-col gap-1.5"></div>
+                </div>
+
+                <!-- Pets Panel -->
+                <div id="panel-pets" class="hidden flex flex-col gap-2 flex-grow overflow-y-auto h-[400px] pr-1">
+                    <div class="border-b border-indigo-500/10 pb-1.5 mb-1.5">
+                        <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block mb-1">Ấp Trứng Gacha Thú Cưng</span>
+                        <div class="grid grid-cols-2 gap-1 text-[9px] font-bold orbitron">
+                            <button onclick="window.buyPetEgg('bronze')" class="p-1 bg-amber-800/80 hover:bg-amber-700 text-white rounded transition-all">Trứng Đồng (500 <i class="fa-solid fa-coins text-[8px]"></i>)</button>
+                            <button onclick="window.buyPetEgg('aluminum')" class="p-1 bg-slate-500/80 hover:bg-slate-400 text-white rounded transition-all">Trứng Nhôm (1.500 <i class="fa-solid fa-coins text-[8px]"></i>)</button>
+                            <button onclick="window.buyPetEgg('silver')" class="p-1 bg-slate-300 hover:bg-slate-200 text-slate-950 rounded transition-all">Trứng Bạc (20 <i class="fa-solid fa-gem text-[8px]"></i>)</button>
+                            <button onclick="window.buyPetEgg('gold')" class="p-1 bg-yellow-500 hover:bg-yellow-400 text-slate-950 rounded transition-all">Trứng Vàng (50 <i class="fa-solid fa-gem text-[8px]"></i>)</button>
+                            <button onclick="window.buyPetEgg('platinum')" class="p-1 bg-indigo-400 hover:bg-indigo-300 text-slate-950 rounded transition-all">Bạch Kim (100 <i class="fa-solid fa-gem text-[8px]"></i>)</button>
+                            <button onclick="window.buyPetEgg('diamond')" class="p-1 bg-cyan-400 hover:bg-cyan-300 text-slate-950 rounded transition-all">Kim Cương (200 <i class="fa-solid fa-gem text-[8px]"></i>)</button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/40 p-2 rounded-xl border border-slate-800 mb-1.5">
+                        <span class="text-[10px] text-purple-400 font-black uppercase block mb-1">Luyện Đan (Crafting)</span>
+                        <p class="text-[9px] text-slate-400 leading-snug mb-1">Ghép 5 con Pet cùng Loại & Cấp để tiến hóa.</p>
+                        <div class="flex gap-1">
+                            <button onclick="window.craftPetLevelUp()" class="flex-1 py-1 bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] rounded transition-all orbitron">TIẾN HÓA PET</button>
+                            <button onclick="window.sortPetsInventory()" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white font-bold text-[10px] rounded transition-all"><i class="fa-solid fa-arrow-up-wide-short"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-gray-300 font-bold block mb-1">Đội hình Pet của bạn:</span>
+                        <div id="pets-inventory-list" class="flex flex-col gap-1"></div>
+                    </div>
+                </div>
+
+                <!-- Quests Panel -->
+                <div id="panel-quests" class="hidden flex flex-col gap-2 flex-grow overflow-y-auto h-[400px] pr-1">
+                    <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block mb-1">Nhiệm Vụ Hàng Ngày</span>
+                    <div id="quests-list" class="flex flex-col gap-1.5"></div>
+                </div>
+            </div>
+
+            <!-- Session Stats -->
+            <div class="glass-panel rounded-2xl p-3">
+                <h2 class="text-xs font-black border-b border-indigo-500/20 pb-2 mb-1.5 text-rose-400 uppercase orbitron"><i class="fa-solid fa-satellite mr-1.5"></i>Trận Đấu Hiện Tại</h2>
+                <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+                    <div class="bg-slate-900/50 p-1.5 rounded-lg"><span class="text-gray-400 block uppercase">Thời gian</span><span id="game-time" class="text-xs font-bold text-white orbitron">00:00</span></div>
+                    <div class="bg-slate-900/50 p-1.5 rounded-lg"><span class="text-gray-400 block uppercase">Bóng Đỡ</span><span id="score-counter" class="text-xs font-bold text-white orbitron">0</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory quickbar -->
+    <div class="w-full max-w-7xl mb-3 p-3.5 glass-panel rounded-2xl flex flex-col md:flex-row justify-between items-center gap-3 font-bold z-10 relative">
+        <div class="text-sm text-gray-300 orbitron uppercase tracking-widest text-cyan-400"><i class="fa-solid fa-cubes mr-2 animate-pulse"></i>Kho Vật Phẩm (Dùng phím 1-4)</div>
+        <div class="flex gap-3 flex-wrap">
+            <button onclick="window.useItem('heal')" class="px-3.5 py-2 bg-slate-900 border border-slate-800 text-slate-400 rounded-xl flex items-center gap-2 text-xs hover:border-emerald-500 hover:text-white transition-all"><span class="bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-black orbitron">1</span><span>Hồi Máu:</span> <strong id="inv-heal-count" class="text-emerald-400 font-bold">0</strong></button>
+            <button onclick="window.useItem('speed')" class="px-3.5 py-2 bg-slate-900 border border-slate-800 text-slate-400 rounded-xl flex items-center gap-2 text-xs hover:border-cyan-500 hover:text-white transition-all"><span class="bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded font-black orbitron">2</span><span>Tốc Độ:</span> <strong id="inv-speed-count" class="text-cyan-400 font-bold">0</strong></button>
+            <button onclick="window.useItem('shield')" class="px-3.5 py-2 bg-slate-900 border border-slate-800 text-slate-400 rounded-xl flex items-center gap-2 text-xs hover:border-red-500 hover:text-white transition-all"><span class="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-black orbitron">3</span><span>Cộng Mạng:</span> <strong id="inv-shield-count" class="text-red-400 font-bold">0</strong></button>
+            <button onclick="window.useItem('clear')" class="px-3.5 py-2 bg-slate-900 border border-slate-800 text-slate-400 rounded-xl flex items-center gap-2 text-xs hover:border-purple-500 hover:text-white transition-all"><span class="bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded font-black orbitron">4</span><span>Hủy Bom:</span> <strong id="inv-disarm-count" class="text-purple-400 font-bold">0</strong></button>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL (NĂNG CẤP MỚI KHAI BÁO) -->
+    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden">
+        <div class="glass-panel max-w-md w-full p-6 rounded-2xl border-2 border-indigo-500/40 flex flex-col gap-5 text-left shadow-2xl">
+            <div class="flex justify-between items-center border-b border-indigo-500/20 pb-3">
+                <h3 class="text-lg font-black orbitron text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-cyan-400"></i> CÀI ĐẶT TRÒ CHƠI
+                </h3>
+                <button onclick="window.closeSettingsModal()" class="text-gray-400 hover:text-white transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="flex flex-col gap-4 text-xs font-bold">
+                <!-- 1. Cài đặt Âm Thanh Đập Bóng (SFX) -->
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-cyan-400 flex items-center gap-2 uppercase orbitron text-[11px]">
+                            <i class="fa-solid fa-volume-high"></i> Âm Thanh Đập Bóng (SFX)
+                        </label>
+                        <span id="sfx-vol-label" class="text-white orbitron text-[11px]">70%</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="range" id="setting-sfx-volume" min="0" max="100" value="70" oninput="window.updateSettingsVolume()" class="w-full accent-cyan-400 cursor-pointer">
+                        <button id="btn-sfx-toggle" onclick="window.toggleMuteSFX()" class="px-2.5 py-1 bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 rounded-lg text-[10px] hover:bg-cyan-500/30">MUTE</button>
+                    </div>
+                </div>
+
+                <!-- 2. Cài đặt Âm Thanh Nền (BGM) -->
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-purple-400 flex items-center gap-2 uppercase orbitron text-[11px]">
+                            <i class="fa-solid fa-music"></i> Âm Thanh Nền (BGM)
+                        </label>
+                        <span id="bgm-vol-label" class="text-white orbitron text-[11px]">40%</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="range" id="setting-bgm-volume" min="0" max="100" value="40" oninput="window.updateSettingsVolume()" class="w-full accent-purple-400 cursor-pointer">
+                        <button id="btn-bgm-toggle" onclick="window.toggleMuteBGM()" class="px-2.5 py-1 bg-purple-500/20 text-purple-400 border border-purple-500/40 rounded-lg text-[10px] hover:bg-purple-500/30">MUTE</button>
+                    </div>
+                </div>
+
+                <!-- 3. Cài đặt Chế độ Điều khiển (Mouse / Arrow keys / Both) -->
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex flex-col gap-2">
+                    <label class="text-yellow-400 flex items-center gap-2 uppercase orbitron text-[11px]">
+                        <i class="fa-solid fa-keyboard"></i> Chế Độ Điều Khiển Paddle (PC)
+                    </label>
+                    <p class="text-[10px] text-gray-400 leading-normal font-normal">*(Điện thoại di động mặc định sử dụng cảm ứng vuốt màn hình để di chuyển)*</p>
+                    <div class="grid grid-cols-3 gap-2 mt-1">
+                        <button id="ctrl-mode-mouse" onclick="window.setControlType('mouse')" class="py-2 bg-slate-800 border border-slate-700 text-gray-300 hover:text-white text-[10px] font-bold rounded-lg flex flex-col items-center gap-1 transition-all">
+                            <i class="fa-solid fa-mouse text-cyan-400"></i>
+                            <span>Chỉ Chuột</span>
+                        </button>
+                        <button id="ctrl-mode-keys" onclick="window.setControlType('keys')" class="py-2 bg-slate-800 border border-slate-700 text-gray-300 hover:text-white text-[10px] font-bold rounded-lg flex flex-col items-center gap-1 transition-all">
+                            <i class="fa-solid fa-arrows-left-right text-indigo-400"></i>
+                            <span>Phím Phím (← →)</span>
+                        </button>
+                        <button id="ctrl-mode-both" onclick="window.setControlType('both')" class="py-2 bg-slate-800 border border-slate-700 text-gray-300 hover:text-white text-[10px] font-bold rounded-lg flex flex-col items-center gap-1 transition-all">
+                            <i class="fa-solid fa-gamepad text-emerald-400"></i>
+                            <span>Cả Hai</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Chế độ Giao diện Sáng/Tối -->
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-half-stroke text-amber-400"></i>
+                        <span class="text-slate-200 uppercase orbitron text-[11px]">Chế Độ Giao Diện</span>
+                    </div>
+                    <button onclick="window.toggleTheme()" class="px-3 py-1.5 bg-slate-800 border border-slate-700 text-yellow-400 hover:text-yellow-300 rounded-lg text-xs font-bold orbitron flex items-center gap-1.5">
+                        <i id="setting-theme-icon" class="fa-solid fa-moon"></i>
+                        <span id="setting-theme-text">Tối (Dark)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-end border-t border-indigo-500/20 pt-3">
+                <button onclick="window.closeSettingsModal()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase orbitron tracking-wider">ĐÓNG</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GHÉP BOT (CRAFT BOT MODAL) -->
+    <div id="craft-bot-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm hidden">
+        <div class="glass-panel max-w-md w-full p-6 rounded-2xl border-2 border-purple-500/40 flex flex-col gap-4">
+            <div class="flex justify-between items-center border-b border-purple-500/20 pb-3">
+                <h3 class="text-lg font-black orbitron text-purple-400 uppercase tracking-widest"><i class="fa-solid fa-cubes mr-2"></i>Luyện Đan Ghép Bot</h3>
+                <button onclick="window.closeCraftBotModal()" class="text-gray-400 hover:text-white transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="flex flex-col gap-3 text-xs">
+                <div>
+                    <label class="text-[10px] text-gray-400 block uppercase font-bold mb-1">Chọn nhóm Bot để ghép (Yêu cầu ít nhất 2 cái):</label>
+                    <select id="craft-bot-select" class="w-full bg-slate-900 border border-slate-700 text-white rounded p-2 font-bold uppercase orbitron" onchange="window.updateCraftBotRate()"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block uppercase font-bold mb-1">Chọn số lượng hiến tế (2 - 5):</label>
+                    <select id="craft-bot-amount" class="w-full bg-slate-900 border border-slate-700 text-white rounded p-2 font-bold orbitron" onchange="window.updateCraftBotRate()">
+                        <option value="2">2 cái</option>
+                        <option value="3">3 cái</option>
+                        <option value="4">4 cái</option>
+                        <option value="5" selected>5 cái</option>
+                    </select>
+                </div>
+                <div class="bg-black/40 p-3 rounded-xl border border-purple-500/20 text-center">
+                    <span class="text-gray-400 block font-bold text-[10px] uppercase">Tỉ Lệ Thành Công Dự Kiến</span>
+                    <span id="craft-bot-rate-label" class="text-2xl font-black text-emerald-400 orbitron">100%</span>
+                    <span class="text-[9px] text-slate-400 block mt-1">Gợi ý: Dùng đủ 5 con để ghép thành công 100%. Thất bại sẽ làm mất vật tế!</span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-2">
+                <button onclick="window.closeCraftBotModal()" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold uppercase">Hủy</button>
+                <button onclick="window.executeBotCraft()" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white rounded-xl text-xs font-black uppercase orbitron tracking-wider">TIẾN HÀNH GHÉP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT CHÍNH (FULL CHỨC NĂNG CẢI TIẾN) -->
+    <script>
+        // ==========================================
+        // 1. BIẾN TOÀN CỤC CHUẨN XÁC VÀ DUY NHẤT
+        // ==========================================
+        const HOME_LINK = "https://google.com"; // <--- THAY ĐỔI LINK TRANG CHỦ CỦA BẠN TẠI ĐÂY
+
+        let gameoverOverlay, startOverlay;
+        let floatingTexts = [];
+        let activeFireOrbs = [];
+        let particles = [];
+        let sfxVolume = 0.7; 
+        let bgmVolume = 0.4; 
+        let sfxMuted = false;
+        let bgmMuted = false;
+        let bgmOscillator = null;
+        let bgmGainNode = null;
+        let bgmIntervalId = null; 
+        let controlType = 'both'; // 'mouse', 'keys', 'both'
+        let audioCtx = null;
+        let lastTime = 0; 
+        let currentUser = null;
+        let keysState = { ArrowLeft: false, ArrowRight: false, KeyA: false, KeyD: false };
+        let mediaRecorder; let recordedChunks = []; let isRecording = false;
+
+        const CONFIG = { width: 800, height: 600, initialLives: 10.0, initialHP: 750 };
+        const PADDLES_DATA = {
+            pho_thong: { id: 'pho_thong', name: 'Phổ Thông', icon: 'fa-gamepad', desc: 'Cơ bản. Z: Tốc hành, X: Khiên bảo vệ.', color: '#3b82f6', cost: 0, skills: { z: { name: 'Tốc hành (Ghost)', cooldown: 12, duration: 8 }, x: { name: 'Hào quang bảo hộ', cooldown: 15, duration: 8 } } },
+            thuc_vat: { id: 'thuc_vat', name: 'Thực Vật', icon: 'fa-leaf', desc: 'Hồi HP. Z: Mạng, X: Rễ bảo vệ.', color: '#22c55e', cost: 70000, skills: { z: { name: 'Nảy mầm', cooldown: 30, duration: 1 }, x: { name: 'Gốc rễ nảy', cooldown: 40, duration: 15 } } },
+            lua: { id: 'lua', name: 'Hệ Lửa', icon: 'fa-fire', desc: 'Thiêu đốt bóng. Z: Hỏa thần, X: Sàn lửa.', color: '#f97316', cost: 90000, skills: { z: { name: 'Hỏa thần', cooldown: 25, duration: 10 }, x: { name: 'Thiêu rụi', cooldown: 30, duration: 10 } } },
+            dien: { id: 'dien', name: 'Hệ Điện', icon: 'fa-bolt', desc: 'Giật sét. Z: Đứng hình, X: Hủy bóng, C: Lưới điện.', color: '#eab308', cost: 100000, skills: { z: { name: 'Sấm sét', cooldown: 25, duration: 1 }, x: { name: 'Hủy diệt', cooldown: 12, duration: 1 }, c: { name: 'Lưới điện', cooldown: 30, duration: 10 } } },
+            magma: { id: 'magma', name: 'Magma', icon: 'fa-volcano', desc: 'Dung nham lan. Z: Cột Magma, X: Cầu Magma.', color: '#ff4500', cost: 110000, skills: { z: { name: 'Cột Magma', cooldown: 30, duration: 4 }, x: { name: 'Cầu Dung Nham', cooldown: 35, duration: 1 } } },
+            bang: { id: 'bang', name: 'Hệ Băng', icon: 'fa-snowflake', desc: 'Giảm nửa tốc. Z: Đứng bóng, X: Chắn tuyết.', color: '#67e8f9', cost: 160000, skills: { z: { name: 'Ngưng đọng', cooldown: 30, duration: 8 }, x: { name: 'Chắn tuyết', cooldown: 35, duration: 15 } } },
+            tuyet: { id: 'tuyet', name: 'Hệ Tuyết', icon: 'fa-cloud-meatball', desc: 'Chậm bóng. Z: Đóng băng sân, X: Bão tuyết.', color: '#93c5fd', cost: 180000, skills: { z: { name: 'Đóng băng', cooldown: 30, duration: 1 }, x: { name: 'Bão Tuyết', cooldown: 35, duration: 15 } } },
+            gojo: { id: 'gojo', name: 'Vô Hạ Hạn (Gojo)', icon: 'fa-infinity', desc: 'Giáp bất hoại. Z: Đẩy lùi, X: Lực hút, C: Lỗ Đen.', color: '#c084fc', cost: 640000, skills: { z: { name: 'Thương', cooldown: 20, duration: 1 }, x: { name: 'Hách', cooldown: 25, duration: 1 }, c: { name: 'Tử', cooldown: 40, duration: 10 } } },
+            robot: { id: 'robot', name: 'Robot Mecha', icon: 'fa-robot', desc: 'Hủy diệt bóng. Z/X/C/V: Hệ thống Laser & Súng.', color: '#94a3b8', cost: 1280000, skills: { z: { name: 'Laser Dọc', cooldown: 15, duration: 2 }, x: { name: 'Cầu Laser', cooldown: 30, duration: 1 }, c: { name: 'Clear Map', cooldown: 60, duration: 1 }, v: { name: 'Súng Máy', cooldown: 35, duration: 1 } } }
+        };
+
+        let game = {
+            gameMode: 'solo', isPlaying: false, isPaused: false,
+            score: 0, coins: 1000, diamonds: 50,
+            lives: CONFIG.initialLives, maxHp: CONFIG.initialHP, hp: CONFIG.initialHP,
+            level: 1, exp: 0, expNeeded: 1000, totalLevelUps: 0,
+            upgrades: { coin: { level: 1, cost: 100 }, speed: { level: 1, cost: 150 }, hp: { level: 1, cost: 200 } },
+            itemsStore: {
+                heal: { id: 'heal', name: 'Bình Máu', cost: 50, costType: 'coins', color: '#10b981', icon: 'fa-prescription-bottle-medical', desc: 'Hồi 200 HP.' },
+                speed: { id: 'speed', name: 'Thuốc Tốc', cost: 60, costType: 'coins', color: '#06b6d4', icon: 'fa-bolt', desc: '+50% Tốc (15s).' },
+                shield: { id: 'shield', name: 'Hộ Mệnh', cost: 100, costType: 'coins', color: '#ef4444', icon: 'fa-heart-circle-plus', desc: '+1 Mạng.' },
+                clear: { id: 'clear', name: 'Dọn Sân', cost: 80, costType: 'diamonds', color: '#c084fc', icon: 'fa-wind', desc: 'Xóa bóng.' }
+            },
+            inventory: { heal: 2, speed: 1, shield: 1, clear: 1 },
+            selectedPaddle: 'pho_thong',
+            unlockedPaddles: ['pho_thong'],
+            paddleX: 350, paddleWidth: 120, paddleSpeed: 8,
+            balls: [], bombs: [],
+            activeSkills: { z: false, x: false, c: false, v: false },
+            skillCooldowns: { z: 0, x: 0, c: 0, v: 0 },
+            squadBots: [], botInventory: [],
+            petsInventory: [],
+            quests: [
+                { id: 1, text: 'Đỡ 50 quả bóng', target: 50, current: 0, rewardCoins: 500, claimed: false },
+                { id: 2, text: 'Đạt 1,000 điểm', target: 1000, current: 0, rewardDiamonds: 20, claimed: false }
+            ]
+        };
+
+        // ==========================================
+        // 2. AUDIO SYNTHESIZER SYSTEM
+        // ==========================================
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBounceSFX(type = 'normal') {
+            if (sfxMuted || sfxVolume <= 0) return;
+            try {
+                initAudioContext();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                let freq = 440;
+                let duration = 0.08;
+
+                if (type === 'paddle') { freq = 587.33; duration = 0.1; } // D5
+                else if (type === 'wall') { freq = 349.23; duration = 0.06; } // F4
+                else if (type === 'score') { freq = 880; duration = 0.15; } // A5
+                else if (type === 'damage') { freq = 150; duration = 0.2; osc.type = 'sawtooth'; }
+                else if (type === 'skill') { freq = 783.99; duration = 0.25; osc.type = 'triangle'; }
+
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(sfxVolume * 0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                osc.start(now);
+                osc.stop(now + duration);
+            } catch (e) { console.error("SFX Error", e); }
+        }
+
+        function startBGM() {
+            if (bgmMuted || bgmVolume <= 0) return;
+            try {
+                initAudioContext();
+                if (bgmIntervalId) clearInterval(bgmIntervalId);
+
+                const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00]; // C4 major scale
+                let noteIdx = 0;
+
+                bgmIntervalId = setInterval(() => {
+                    if (game.isPlaying && !game.isPaused && !bgmMuted) {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(notes[noteIdx % notes.length], audioCtx.currentTime);
+                        gain.gain.setValueAtTime(bgmVolume * 0.1, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 0.3);
+                        noteIdx++;
+                    }
+                }, 400);
+            } catch (e) { console.error("BGM Error", e); }
+        }
+
+        function stopBGM() {
+            if (bgmIntervalId) {
+                clearInterval(bgmIntervalId);
+                bgmIntervalId = null;
+            }
+        }
+
+        // ==========================================
+        // 3. THEME & SETTINGS CONTROLLERS
+        // ==========================================
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            const themeIcon = document.getElementById('theme-icon');
+            const settingThemeIcon = document.getElementById('setting-theme-icon');
+            const settingThemeText = document.getElementById('setting-theme-text');
+
+            if (isDark) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                if (themeIcon) themeIcon.className = "fa-solid fa-sun text-amber-500 text-sm";
+                if (settingThemeIcon) settingThemeIcon.className = "fa-solid fa-sun text-amber-500";
+                if (settingThemeText) settingThemeText.textContent = "Sáng (Light)";
+                localStorage.setItem('arena_theme', 'light');
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                if (themeIcon) themeIcon.className = "fa-solid fa-moon text-yellow-400 text-sm";
+                if (settingThemeIcon) settingThemeIcon.className = "fa-solid fa-moon text-yellow-400";
+                if (settingThemeText) settingThemeText.textContent = "Tối (Dark)";
+                localStorage.setItem('arena_theme', 'dark');
+            }
+        };
+
+        window.openSettingsModal = function() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        };
+
+        window.closeSettingsModal = function() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        };
+
+        window.updateSettingsVolume = function() {
+            const sfxVal = document.getElementById('setting-sfx-volume').value;
+            const bgmVal = document.getElementById('setting-bgm-volume').value;
+
+            sfxVolume = parseFloat(sfxVal) / 100;
+            bgmVolume = parseFloat(bgmVal) / 100;
+
+            document.getElementById('sfx-vol-label').textContent = `${sfxVal}%`;
+            document.getElementById('bgm-vol-label').textContent = `${bgmVal}%`;
+
+            if (sfxVolume > 0 && sfxMuted) window.toggleMuteSFX();
+            if (bgmVolume > 0 && bgmMuted) window.toggleMuteBGM();
+        };
+
+        window.toggleMuteSFX = function() {
+            sfxMuted = !sfxMuted;
+            const btn = document.getElementById('btn-sfx-toggle');
+            if (sfxMuted) {
+                btn.textContent = "UNMUTE";
+                btn.className = "px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 rounded-lg text-[10px]";
+            } else {
+                btn.textContent = "MUTE";
+                btn.className = "px-2.5 py-1 bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 rounded-lg text-[10px]";
+            }
+        };
+
+        window.toggleMuteBGM = function() {
+            bgmMuted = !bgmMuted;
+            const btn = document.getElementById('btn-bgm-toggle');
+            if (bgmMuted) {
+                btn.textContent = "UNMUTE";
+                btn.className = "px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 rounded-lg text-[10px]";
+                stopBGM();
+            } else {
+                btn.textContent = "MUTE";
+                btn.className = "px-2.5 py-1 bg-purple-500/20 text-purple-400 border border-purple-500/40 rounded-lg text-[10px]";
+                if (game.isPlaying) startBGM();
+            }
+        };
+
+        window.setControlType = function(type) {
+            controlType = type;
+            const btnMouse = document.getElementById('ctrl-mode-mouse');
+            const btnKeys = document.getElementById('ctrl-mode-keys');
+            const btnBoth = document.getElementById('ctrl-mode-both');
+
+            [btnMouse, btnKeys, btnBoth].forEach(b => {
+                b.className = "py-2 bg-slate-800 border border-slate-700 text-gray-300 hover:text-white text-[10px] font-bold rounded-lg flex flex-col items-center gap-1 transition-all";
+            });
+
+            if (type === 'mouse') btnMouse.className = "py-2 bg-cyan-600 border-2 border-cyan-400 text-white text-[10px] font-bold rounded-lg flex flex-col items-center gap-1 transition-all shadow-md";
+            if (type === 'keys') btnKeys.className = "py-2 bg-indigo-600 border-2 border-indigo-400 text-white text-[10px] font-bold rounded-lg flex flex-col items-center gap-1 transition-all shadow-md";
+            if (type === 'both') btnBoth.className = "py-2 bg-emerald-600 border-2 border-emerald-400 text-white text-[10px] font-bold rounded-lg flex flex-col items-center gap-1 transition-all shadow-md";
+
+            localStorage.setItem('arena_control', type);
+        };
+
+        // ==========================================
+        // 4. CANVAS GAME ENGINE & PHYSICS
+        // ==========================================
+        let canvas, ctx;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = CONFIG.width;
+            canvas.height = CONFIG.height;
+
+            startOverlay = document.getElementById('start-overlay');
+            gameoverOverlay = document.getElementById('gameover-overlay');
+
+            // Restore Saved Settings
+            const savedTheme = localStorage.getItem('arena_theme');
+            if (savedTheme === 'light') window.toggleTheme();
+
+            const savedControl = localStorage.getItem('arena_control') || 'both';
+            window.setControlType(savedControl);
+
+            // Control Event Listeners
+            canvas.addEventListener('mousemove', (e) => {
+                if (controlType === 'mouse' || controlType === 'both') {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    game.paddleX = (e.clientX - rect.left) * scaleX - game.paddleWidth / 2;
+                    game.paddleX = Math.max(0, Math.min(CONFIG.width - game.paddleWidth, game.paddleX));
+                }
+            });
+
+            // Mobile Touch Support
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    game.paddleX = (e.touches[0].clientX - rect.left) * scaleX - game.paddleWidth / 2;
+                    game.paddleX = Math.max(0, Math.min(CONFIG.width - game.paddleWidth, game.paddleX));
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.code in keysState) keysState[e.code] = true;
+                if (e.code === 'KeyZ') window.triggerSkill('z');
+                if (e.code === 'KeyX') window.triggerSkill('x');
+                if (e.code === 'KeyC') window.triggerSkill('c');
+                if (e.code === 'KeyV') window.triggerSkill('v');
+                if (e.code === 'Digit1') window.useItem('heal');
+                if (e.code === 'Digit2') window.useItem('speed');
+                if (e.code === 'Digit3') window.useItem('shield');
+                if (e.code === 'Digit4') window.useItem('clear');
+            });
+
+            window.addEventListener('keyup', (e) => {
+                if (e.code in keysState) keysState[e.code] = false;
+            });
+
+            window.renderPaddlesList();
+            window.updateHUD();
+            requestAnimationFrame(gameLoop);
+        });
+
+        function gameLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            ctx.clearRect(0, 0, CONFIG.width, CONFIG.height);
+
+            // Canvas Grid Background
+            ctx.strokeStyle = document.documentElement.classList.contains('light') ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < CONFIG.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CONFIG.height); ctx.stroke();
+            }
+            for (let y = 0; y < CONFIG.height; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CONFIG.width, y); ctx.stroke();
+            }
+
+            if (game.isPlaying && !game.isPaused) {
+                // Keyboard Movement Update
+                if (controlType === 'keys' || controlType === 'both') {
+                    if (keysState.ArrowLeft || keysState.KeyA) {
+                        game.paddleX -= game.paddleSpeed * 1.2;
+                    }
+                    if (keysState.ArrowRight || keysState.KeyD) {
+                        game.paddleX += game.paddleSpeed * 1.2;
+                    }
+                    game.paddleX = Math.max(0, Math.min(CONFIG.width - game.paddleWidth, game.paddleX));
+                }
+
+                updateBalls();
+                updateSkillCooldowns(dt);
+            }
+
+            drawPaddle();
+            drawBalls();
+            drawFloatingTexts();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawPaddle() {
+            const paddleY = CONFIG.height - 30;
+            const padColor = PADDLES_DATA[game.selectedPaddle]?.color || '#3b82f6';
+
+            ctx.save();
+            ctx.fillStyle = padColor;
+            ctx.shadowColor = padColor;
+            ctx.shadowBlur = 15;
+
+            // Rounded Paddle Body
+            ctx.beginPath();
+            ctx.roundRect(game.paddleX, paddleY, game.paddleWidth, 18, 9);
+            ctx.fill();
+
+            // Metallic highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath();
+            ctx.roundRect(game.paddleX + 5, paddleY + 3, game.paddleWidth - 10, 4, 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function createBall() {
+            return {
+                x: CONFIG.width / 2,
+                y: CONFIG.height / 3,
+                vx: (Math.random() - 0.5) * 300,
+                vy: 260,
+                radius: 8,
+                color: '#38bdf8'
+            };
+        }
+
+        function drawBalls() {
+            game.balls.forEach(b => {
+                ctx.save();
+                ctx.fillStyle = b.color;
+                ctx.shadowColor = b.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function updateBalls() {
+            const paddleY = CONFIG.height - 30;
+
+            for (let i = game.balls.length - 1; i >= 0; i--) {
+                let b = game.balls[i];
+                b.x += b.vx * 0.016;
+                b.y += b.vy * 0.016;
+
+                // Wall collisions
+                if (b.x - b.radius <= 0 || b.x + b.radius >= CONFIG.width) {
+                    b.vx *= -1;
+                    playBounceSFX('wall');
+                }
+                if (b.y - b.radius <= 0) {
+                    b.vy *= -1;
+                    playBounceSFX('wall');
+                }
+
+                // Paddle collision
+                if (b.y + b.radius >= paddleY && b.y - b.radius <= paddleY + 18 &&
+                    b.x >= game.paddleX && b.x <= game.paddleX + game.paddleWidth) {
+                    b.vy = -Math.abs(b.vy);
+                    game.score += 10;
+                    game.coins += Math.floor(2 * (game.upgrades.coin.level * 0.25 + 0.75));
+                    playBounceSFX('paddle');
+                    addFloatingText("+10", b.x, b.y, "#38bdf8");
+                    window.updateHUD();
+                }
+
+                // Bottom boundary
+                if (b.y - b.radius > CONFIG.height) {
+                    game.hp -= 50;
+                    playBounceSFX('damage');
+                    addFloatingText("-50 HP", CONFIG.width / 2, CONFIG.height - 50, "#ef4444");
+
+                    if (game.hp <= 0) {
+                        game.lives -= 1;
+                        game.hp = game.maxHp;
+                    }
+
+                    if (game.lives <= 0) {
+                        endGame();
+                        break;
+                    }
+
+                    game.balls[i] = createBall();
+                    window.updateHUD();
+                }
+            }
+        }
+
+        function addFloatingText(text, x, y, color = "#ffffff") {
+            floatingTexts.push({ text, x, y, opacity: 1, color });
+        }
+
+        function drawFloatingTexts() {
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                let ft = floatingTexts[i];
+                ctx.save();
+                ctx.globalAlpha = ft.opacity;
+                ctx.fillStyle = ft.color;
+                ctx.font = "bold 14px Orbitron";
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+
+                ft.y -= 0.8;
+                ft.opacity -= 0.02;
+                if (ft.opacity <= 0) floatingTexts.splice(i, 1);
+            }
+        }
+
+        window.triggerSkill = function(skillKey) {
+            if (!game.isPlaying || game.isPaused) return;
+            if (game.skillCooldowns[skillKey] > 0) return;
+
+            const padInfo = PADDLES_DATA[game.selectedPaddle];
+            if (!padInfo || !padInfo.skills[skillKey]) return;
+
+            game.skillCooldowns[skillKey] = padInfo.skills[skillKey].cooldown;
+            playBounceSFX('skill');
+            addFloatingText(`CHIÊU ${skillKey.toUpperCase()} KÍCH HOẠT!`, game.paddleX, CONFIG.height - 60, "#a855f7");
+        };
+
+        function updateSkillCooldowns(dt) {
+            ['z', 'x', 'c', 'v'].forEach(k => {
+                if (game.skillCooldowns[k] > 0) {
+                    game.skillCooldowns[k] = Math.max(0, game.skillCooldowns[k] - dt);
+                    const label = document.getElementById(`cooldown-${k}`);
+                    if (label) {
+                        label.textContent = game.skillCooldowns[k] > 0 ? `${game.skillCooldowns[k].toFixed(1)}s` : "SẴN SÀNG";
+                    }
+                }
+            });
+        }
+
+        window.startGame = function() {
+            initAudioContext();
+            game.isPlaying = true;
+            game.isPaused = false;
+            game.score = 0;
+            game.lives = CONFIG.initialLives;
+            game.hp = game.maxHp;
+            game.balls = [createBall()];
+
+            startOverlay.classList.add('hidden');
+            gameoverOverlay.classList.add('hidden');
+            startBGM();
+            window.updateHUD();
+        };
+
+        function endGame() {
+            game.isPlaying = false;
+            stopBGM();
+            document.getElementById('end-score').textContent = game.score;
+            document.getElementById('end-coins').textContent = game.coins;
+            gameoverOverlay.classList.remove('hidden');
+        }
+
+        window.togglePauseGame = function() {
+            game.isPaused = !game.isPaused;
+            const btn = document.getElementById('btn-pause-game');
+            if (btn) btn.innerHTML = game.isPaused ? `<i class="fa-solid fa-play"></i> RESUME` : `<i class="fa-solid fa-pause"></i> PAUSE`;
+        };
+
+        window.goHomeFromGame = function() {
+            game.isPlaying = false;
+            stopBGM();
+            // Chuyển hướng trình duyệt về trang chủ dựa theo biến HOME_LINK khai báo ở đầu trang
+            window.location.href = HOME_LINK;
+        };
+
+        window.updateHUD = function() {
+            document.getElementById('hud-coins').textContent = game.coins.toLocaleString();
+            document.getElementById('hud-diamonds').textContent = game.diamonds.toLocaleString();
+            document.getElementById('canvas-score').textContent = game.score;
+            document.getElementById('canvas-lives').textContent = game.lives.toFixed(1);
+            document.getElementById('canvas-hp').textContent = `${Math.max(0, Math.floor(game.hp))}/${game.maxHp}`;
+        };
+
+        window.renderPaddlesList = function() {
+            const list = document.getElementById('paddle-selector-list');
+            if (!list) return;
+            list.innerHTML = '';
+
+            Object.values(PADDLES_DATA).forEach(p => {
+                const isSelected = game.selectedPaddle === p.id;
+                const isUnlocked = game.unlockedPaddles.includes(p.id);
+
+                const item = document.createElement('div');
+                item.className = `p-2 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'bg-indigo-600/30 border-indigo-500 shadow-md' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'}`;
+                item.onclick = () => {
+                    if (isUnlocked) {
+                        game.selectedPaddle = p.id;
+                        document.getElementById('preview-name').textContent = p.name.toUpperCase();
+                        document.getElementById('preview-desc').textContent = p.desc;
+                        window.renderPaddlesList();
+                    }
+                };
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid ${p.icon} text-lg" style="color: ${p.color}"></i>
+                        <div>
+                            <span class="text-xs font-black text-white orbitron block leading-tight">${p.name}</span>
+                            <span class="text-[9px] text-gray-400 block">${isUnlocked ? (isSelected ? 'Đang chọn' : 'Đã sở hữu') : `${p.cost.toLocaleString()} xu`}</span>
+                        </div>
+                    </div>
+                    ${!isUnlocked ? `<button onclick="event.stopPropagation(); window.buyPaddleDirect('${p.id}')" class="px-2 py-1 bg-yellow-500 text-slate-950 text-[10px] font-bold rounded">MUA</button>` : ''}
+                `;
+                list.appendChild(item);
+            });
+        };
+
+        window.buyUpgrade = function(type) {
+            const up = game.upgrades[type];
+            if (game.coins >= up.cost) {
+                game.coins -= up.cost;
+                up.level += 1;
+                up.cost = Math.floor(up.cost * 1.5);
+                if (type === 'hp') game.maxHp += 150;
+                window.updateHUD();
+                playBounceSFX('score');
+            }
+        };
+
+        window.switchTab = function(tabName) {
+            ['upgrades', 'store', 'bots', 'pets', 'quests'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}-btn`);
+                const panel = document.getElementById(`panel-${t}`);
+                if (btn) btn.classList.toggle('active', t === tabName);
+                if (panel) panel.classList.toggle('hidden', t !== tabName);
+            });
+        };
+
+        window.useItem = function(type) {
+            if (game.inventory[type] > 0) {
+                game.inventory[type]--;
+                if (type === 'heal') game.hp = Math.min(game.maxHp, game.hp + 200);
+                if (type === 'shield') game.lives += 1;
+                if (type === 'clear') game.bombs = [];
+                window.updateHUD();
+                playBounceSFX('score');
+            }
+        };
+
+        window.downloadJSONSave = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(game));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `paddle_arena_save.json`);
+            dlAnchor.click();
+        };
+
+        window.importJSONSave = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    game = JSON.parse(evt.target.result);
+                    window.updateHUD();
+                    window.renderPaddlesList();
+                } catch(err) { console.error("Invalid Save", err); }
+            };
+            reader.readAsText(file);
+        };
+    </script>
+</body>
+</html>
