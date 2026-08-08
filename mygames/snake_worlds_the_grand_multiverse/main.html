@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake Worlds: Grand Multiverse (Stable)</title>
+    <link rel="icon" href="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@300;500;700&display=swap');
+        
+        :root {
+            --neon-blue: #22d3ee;
+            --neon-purple: #a855f7;
+            --neon-green: #4ade80;
+            --neon-red: #f43f5e;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #020617;
+            color: #f1f5f9;
+            overflow: hidden;
+            touch-action: none;
+            margin: 0;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-neon {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(34, 211, 238, 0.4); }
+
+        .chart-container {
+            position: relative; width: 100%; height: 220px; margin: 0 auto;
+        }
+
+        .shop-timer { animation: pulse 1s infinite alternate; }
+
+        @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+
+        #game-canvas { cursor: crosshair; touch-action: none; display: block; }
+        
+        .skill-button {
+            width: 65px; height: 65px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid var(--neon-blue);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; position: relative;
+        }
+
+        .cooldown-overlay {
+            position: absolute; bottom: 0; width: 100%;
+            background: rgba(34, 211, 238, 0.3); transition: height 0.1s linear;
+            border-radius: 0 0 50% 50%;
+        }
+
+        .active-item-tag {
+            background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="relative w-screen h-screen">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- LOBBY SCREEN -->
+        <div id="screen-lobby" class="absolute inset-0 z-20 flex items-center justify-center p-4 bg-slate-950/90 overflow-y-auto">
+            <div class="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Species Selection -->
+                <div class="glass-card p-6 rounded-[2rem] space-y-4">
+                    <h2 class="text-lg font-orbitron text-cyan-400 border-b border-white/10 pb-2">CHỦNG TỘC (10)</h2>
+                    <div class="grid grid-cols-5 gap-2" id="species-list"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+
+                    <div id="species-info" class="p-4 bg-white/5 rounded-2xl">
+                        <h3 class="font-bold text-white" id="info-name">-</h3>
+                        <p id="info-desc" class="text-[11px] opacity-60 leading-tight h-10 overflow-hidden mb-2">-</p>
+                        <div class="text-xs text-cyan-300 font-bold" id="info-skill">Kỹ năng: -</div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Shop -->
+                <div class="glass-card p-6 rounded-[2rem] flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-orbitron text-purple-400">CHỢ VIỄN CHINH</h2>
+                        <div class="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded shop-timer font-mono" id="shop-timer-text">05:00</div>
+                    </div>
+                    <div class="flex-1 space-y-2 overflow-y-auto pr-2" id="shop-items"></div>
+                    <div class="mt-4 p-4 bg-indigo-500/10 rounded-2xl flex justify-between items-center border border-indigo-500/20">
+                        <span class="text-[10px] uppercase opacity-60 font-bold">Ngân quỹ</span>
+                        <span class="text-lg font-bold text-amber-400" id="lobby-essence">0 ✨</span>
+                    </div>
+                </div>
+
+                <!-- Stats & Action -->
+                <div class="space-y-4">
+                    <div class="glass-card p-8 rounded-[2rem] text-center border-t-2 border-cyan-400/30">
+                        <h1 class="text-3xl font-orbitron font-bold tracking-tighter mb-1 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">SNAKE WORLDS</h1>
+                        <p class="text-[9px] opacity-40 uppercase tracking-[0.3em] mb-6">Đa vũ trụ Lỗ đen v5.0</p>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <div class="p-3 bg-white/5 rounded-2xl">
+                                <p class="text-xl font-bold" id="stat-wins">0</p>
+                                <p class="text-[9px] uppercase opacity-50">Thắng</p>
+                            </div>
+                            <div class="p-3 bg-white/5 rounded-2xl">
+                                <p class="text-xl font-bold" id="stat-rate">0%</p>
+                                <p class="text-[9px] uppercase opacity-50">Tỉ lệ</p>
+                            </div>
+                        </div>
+
+                        <button onclick="startGame()" class="btn-neon w-full py-5 rounded-2xl font-orbitron text-lg font-bold shadow-xl">XUẤT QUÂN</button>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-[2rem] text-[11px] space-y-2 opacity-80">
+                        <div class="flex justify-between"><span>Tăng tốc:</span><span class="text-cyan-400">Chuột trái / Space / Nút HUD</span></div>
+                        <div class="flex justify-between"><span>Kỹ năng:</span><span class="text-purple-400">Phím E / Nút HUD</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUD SCREEN -->
+        <div id="screen-hud" class="absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity flex flex-col justify-between p-6">
+            <div class="flex justify-between items-start">
+                <div class="glass-card p-4 rounded-2xl flex gap-6">
+                    <div>
+                        <p class="text-[9px] opacity-60 uppercase font-bold">Tinh vân</p>
+                        <p id="hud-essence" class="text-2xl font-orbitron font-bold">0</p>
+                    </div>
+                    <div class="border-l border-white/10 pl-6">
+                        <p class="text-[9px] opacity-60 uppercase font-bold">Hạng</p>
+                        <p id="hud-rank" class="text-2xl font-orbitron font-bold text-amber-400">#--</p>
+                    </div>
+                    <div class="border-l border-white/10 pl-6">
+                        <p class="text-[9px] opacity-60 uppercase font-bold">Sinh tồn</p>
+                        <p id="hud-alive" class="text-2xl font-orbitron font-bold text-green-400">0</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <div id="active-items-hud" class="flex gap-1"></div>
+                    <div class="w-24 h-24 glass-card rounded-xl overflow-hidden relative border-2 border-white/5">
+                        <canvas id="minimap"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-between items-end pb-2">
+                <div class="pointer-events-auto">
+                    <div class="skill-button shadow-2xl" id="btn-skill">
+                        <span id="skill-emoji">🔥</span>
+                        <div id="cd-skill" class="cooldown-overlay h-0"></div>
+                    </div>
+                </div>
+                <div class="pointer-events-auto">
+                    <div class="w-20 h-20 rounded-full glass-card flex items-center justify-center font-bold text-[10px] border-2 border-cyan-400 shadow-2xl active:scale-90 transition-transform select-none" id="btn-boost">
+                        BOOST
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const WORLD_SIZE = 5000;
+        const SPECIES = {
+            titanium: { name: 'Titanium', icon: '🛡️', color: '#94a3b8', stats: [2, 5, 2, 5], desc: 'Vảy kim loại nặng, cực khó bị tiêu diệt.', skill: 'Khiên Bất Tử', cd: 12000 },
+            magma: { name: 'Magma', icon: '🔥', color: '#f43f5e', stats: [4, 3, 3, 4], desc: 'Để lại vệt dung nham thiêu đốt kẻ thù.', skill: 'Hỏa Ngục', cd: 7000 },
+            glitch: { name: 'Glitch', icon: '👾', color: '#a855f7', stats: [5, 2, 4, 2], desc: 'Thực thể mã lỗi, dịch chuyển xuyên không.', skill: 'Dịch Chuyển', cd: 5000 },
+            singularity: { name: 'Singularity', icon: '🕳️', color: '#0ea5e9', stats: [3, 4, 5, 4], desc: 'Bẻ cong trọng lực, hút mọi thứ vào thân.', skill: 'Lỗ Đen', cd: 10000 },
+            nebula: { name: 'Nebula', icon: '🌌', color: '#2dd4bf', stats: [4, 2, 5, 2], desc: 'Sinh vật bụi khí, tạo sương mù làm chậm.', skill: 'Tinh Vân', cd: 8000 },
+            glass: { name: 'Glass Viper', icon: '💎', color: '#f8fafc', stats: [5, 1, 2, 1], desc: 'Trong suốt, tàng hình khi di chuyển chậm.', skill: 'Tàng Hình', cd: 15000 },
+            chrono: { name: 'Chrono', icon: '⏳', color: '#fbbf24', stats: [3, 3, 4, 3], desc: 'Thao túng thời gian, làm ngưng đọng xung quanh.', skill: 'Thời Không', cd: 18000 },
+            cyber: { name: 'Cyber-Core', icon: '🤖', color: '#818cf8', stats: [3, 4, 3, 5], desc: 'Công nghệ Nano, tách đuôi thành drone.', skill: 'Drone', cd: 9000 },
+            solar: { name: 'Solar', icon: '☀️', color: '#f59e0b', stats: [4, 4, 2, 4], desc: 'Năng lượng mặt trời, gây lóa mắt diện rộng.', skill: 'Lóa Sáng', cd: 11000 },
+            acid: { name: 'Acid', icon: '🧪', color: '#84cc16', stats: [3, 3, 3, 4], desc: 'Tiết dịch độc, làm mòn chiều dài đối thủ.', skill: 'Mưa Acid', cd: 7000 }
+        };
+
+        const ITEM_POOL = [
+            { id: 'radar', name: 'Radar Lượng Tử', cost: 300, icon: '📡', desc: 'Hiện đối thủ trên minimap' },
+            { id: 'magnet', name: 'Siêu Nam Châm', cost: 250, icon: '🧲', desc: 'X3 bán kính hút mồi' },
+            { id: 'shield', name: 'Giáp Phản Đòn', cost: 450, icon: '🛡️', desc: 'Chặn va chạm 1 lần' },
+            { id: 'speed', name: 'Nhiên Liệu X', cost: 200, icon: '🧪', desc: 'Tăng tốc cơ bản 20%' }
+        ];
+
+        // --- STATE ---
+        let state = JSON.parse(localStorage.getItem('snake_v5_data')) || {
+            essence: 1000, wins: 0, matches: 0
+        };
+        let currentSpecies = 'titanium';
+        let shopTimeLeft = 300;
+        let isPlaying = false;
+        let activeItems = [];
+
+        // Engine (Thêm targetZoom cho hiệu ứng camera mượt mà)
+        let canvas, ctx, miniCanvas, miniCtx, radarChart;
+        let player, bots = [], foods = [], particles = [];
+        let camera = { x: 0, y: 0, zoom: 0.85, targetZoom: 0.85 };
+        let pointer = { x: 0, y: 0, active: false };
+        let keys = {};
+
+        // --- INIT ---
+        window.onload = function() {
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            miniCanvas = document.getElementById('minimap');
+            miniCtx = miniCanvas.getContext('2d');
+            
+            window.addEventListener('resize', resize);
+            resize();
+
+            window.addEventListener('keydown', e => {
+                keys[e.code] = true;
+                if(e.code === 'KeyE') player && player.useSkill();
+            });
+            window.addEventListener('keyup', e => keys[e.code] = false);
+
+            canvas.addEventListener('pointermove', e => {
+                pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true;
+            });
+            canvas.addEventListener('pointerdown', () => player && (player.isBoosting = true));
+            canvas.addEventListener('pointerup', () => player && (player.isBoosting = false));
+
+            document.getElementById('btn-boost').onpointerdown = (e) => { e.preventDefault(); if(player) player.isBoosting = true; };
+            document.getElementById('btn-boost').onpointerup = (e) => { e.preventDefault(); if(player) player.isBoosting = false; };
+            document.getElementById('btn-skill').onpointerdown = (e) => { e.preventDefault(); if(player) player.useSkill(); };
+
+            initRadarChart();
+            renderSpeciesList();
+            refreshShop();
+            updateStatsUI();
+            
+            setInterval(() => {
+                shopTimeLeft--;
+                if(shopTimeLeft <= 0) refreshShop();
+                updateShopTimerUI();
+            }, 1000);
+
+            requestAnimationFrame(gameLoop);
+        };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            miniCanvas.width = 96;
+            miniCanvas.height = 96;
+        }
+
+        function initRadarChart() {
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            radarChart = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Tốc độ', 'Giáp', 'Lực hút', 'Khối lượng'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: 'rgba(34, 211, 238, 0.2)',
+                        borderColor: '#22d3ee',
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0, max: 5,
+                            ticks: { display: false },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            angleLines: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateRadarData(statsArray) {
+            if (!radarChart) return;
+            radarChart.data.datasets[0].data = [...statsArray];
+            radarChart.update();
+        }
+
+        function renderSpeciesList() {
+            const list = document.getElementById('species-list');
+            list.innerHTML = '';
+            Object.keys(SPECIES).forEach(key => {
+                const s = SPECIES[key];
+                const btn = document.createElement('div');
+                btn.className = `w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer transition-all border-2 ${key === currentSpecies ? 'border-cyan-400 bg-cyan-400/20' : 'border-white/5 opacity-50'}`;
+                btn.innerHTML = s.icon;
+                btn.onclick = () => selectSpecies(key);
+                list.appendChild(btn);
+            });
+            selectSpecies(currentSpecies);
+        }
+
+        function selectSpecies(key) {
+            currentSpecies = key;
+            const s = SPECIES[key];
+            document.getElementById('info-name').innerText = s.name;
+            document.getElementById('info-desc').innerText = s.desc;
+            document.getElementById('info-skill').innerText = `Kỹ năng: ${s.skill}`;
+            document.getElementById('skill-emoji').innerText = s.icon;
+            
+            updateRadarData(s.stats);
+            
+            document.querySelectorAll('#species-list div').forEach((el, i) => {
+                const id = Object.keys(SPECIES)[i];
+                el.className = `w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer transition-all border-2 ${id === key ? 'border-cyan-400 bg-cyan-400/20' : 'border-white/5 opacity-50'}`;
+            });
+        }
+
+        function refreshShop() {
+            shopTimeLeft = 300;
+            const items = [...ITEM_POOL].sort(() => 0.5 - Math.random());
+            const container = document.getElementById('shop-items');
+            container.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group";
+                div.innerHTML = `
+                    <div class="flex gap-3 items-center">
+                        <div class="text-xl">${item.icon}</div>
+                        <div>
+                            <p class="text-[11px] font-bold font-orbitron">${item.name}</p>
+                            <p class="text-[8px] opacity-40">${item.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('${item.id}', ${item.cost})" class="px-3 py-1 bg-cyan-600 rounded-lg text-[9px] font-bold hover:bg-cyan-500">${item.cost}</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateShopTimerUI() {
+            const m = Math.floor(shopTimeLeft / 60);
+            const s = shopTimeLeft % 60;
+            document.getElementById('shop-timer-text').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+
+        function buyItem(id, cost) {
+            if (state.essence >= cost) {
+                state.essence -= cost;
+                activeItems.push(id);
+                updateStatsUI();
+                save();
+            }
+        }
+
+        function updateStatsUI() {
+            document.getElementById('lobby-essence').innerText = state.essence + ' ✨';
+            document.getElementById('stat-wins').innerText = state.wins;
+            const rate = state.matches > 0 ? Math.round((state.wins / state.matches) * 100) : 0;
+            document.getElementById('stat-rate').innerText = rate + '%';
+        }
+
+        function save() { localStorage.setItem('snake_v5_data', JSON.stringify(state)); }
+
+        class Snake {
+            constructor(x, y, type, isPlayer) {
+                this.x = x; this.y = y; this.angle = Math.random() * Math.PI * 2;
+                this.type = type; this.isPlayer = isPlayer;
+                this.config = SPECIES[type];
+                this.segments = Array(isPlayer && activeItems.includes('growth') ? 60 : 30).fill({x, y});
+                this.length = this.segments.length;
+                this.essence = 0;
+                this.isBoosting = false;
+                this.lastSkillTime = 0;
+                this.shield = activeItems.includes('shield') && isPlayer;
+                this.speedMult = isPlayer && activeItems.includes('speed') ? 1.25 : 1.0;
+                this.invisible = false;
+            }
+
+            update() {
+                if (this.isPlayer) {
+                    if (keys['Space']) this.isBoosting = true;
+                    if (pointer.active) {
+                        const dx = pointer.x - canvas.width/2;
+                        const dy = pointer.y - canvas.height/2;
+                        const target = Math.atan2(dy, dx);
+                        let diff = target - this.angle;
+                        while(diff < -Math.PI) diff += Math.PI*2;
+                        while(diff > Math.PI) diff -= Math.PI*2;
+                        this.angle += diff * 0.15;
+                    }
+                } else {
+                    this.angle += (Math.random() - 0.5) * 0.1;
+                    // AI đơn giản tìm mồi
+                    if (foods.length > 0 && Math.random() < 0.05) {
+                        const f = foods[Math.floor(Math.random()*foods.length)];
+                        this.angle = Math.atan2(f.y - this.y, f.x - this.x);
+                    }
+                }
+
+                const moveSpeed = (this.isBoosting ? 8.5 : 4.5) * (this.config.stats[0] / 3) * this.speedMult;
+                this.x += Math.cos(this.angle) * moveSpeed;
+                this.y += Math.sin(this.angle) * moveSpeed;
+
+                // Biên thế giới
+                this.x = Math.max(-WORLD_SIZE/2, Math.min(WORLD_SIZE/2, this.x));
+                this.y = Math.max(-WORLD_SIZE/2, Math.min(WORLD_SIZE/2, this.y));
+
+                this.segments.unshift({x: this.x, y: this.y});
+                if (this.segments.length > this.length) this.segments.pop();
+
+                // --- HIỆU ỨNG CHẠY NHANH (DASH EFFECTS) ---
+                if (this.isBoosting) {
+                    // 1. Hiệu ứng hạt năng lượng rơi ra từ thân (áp dụng cho mọi loài)
+                    if (Math.random() < 0.6) {
+                        // Chọn một điểm ngẫu nhiên dọc theo nửa sau của thân rắn
+                        const randIndex = Math.floor(this.segments.length / 2 + Math.random() * (this.segments.length / 2));
+                        const seg = this.segments[randIndex];
+                        if (seg) {
+                            particles.push({
+                                x: seg.x + (Math.random() - 0.5) * 15,
+                                y: seg.y + (Math.random() - 0.5) * 15,
+                                r: Math.random() * 4 + 2,
+                                color: this.config.color,
+                                life: 1,
+                                vx: -Math.cos(this.angle) * (Math.random() * 2), // Trôi về phía sau
+                                vy: -Math.sin(this.angle) * (Math.random() * 2),
+                                decay: 0.03 // Tốc độ mờ dần
+                            });
+                        }
+                    }
+
+                    // 2. Hiệu ứng tia lửa 2 bên đầu rắn (cảm giác xé gió)
+                    if (Math.random() < 0.3) {
+                        let offsetAngle = this.angle + (Math.random() > 0.5 ? Math.PI/2 : -Math.PI/2);
+                        particles.push({
+                            x: this.x + Math.cos(offsetAngle) * 12,
+                            y: this.y + Math.sin(offsetAngle) * 12,
+                            r: Math.random() * 3 + 1,
+                            color: '#ffffff', // Tia lửa trắng
+                            life: 0.8,
+                            vx: -Math.cos(this.angle) * 3,
+                            vy: -Math.sin(this.angle) * 3,
+                            decay: 0.05
+                        });
+                    }
+
+                    // 3. Hiệu ứng lửa dung nham đặc trưng của Magma
+                    if (this.type === 'magma') {
+                        particles.push({
+                            x: this.x + (Math.random()-0.5)*10, 
+                            y: this.y + (Math.random()-0.5)*10, 
+                            r: 8 + Math.random() * 4, 
+                            color: '#f43f5e', 
+                            life: 1.2, 
+                            vx: (Math.random()-0.5)*0.5, 
+                            vy: (Math.random()-0.5)*0.5,
+                            decay: 0.02
+                        });
+                    }
+                }
+
+                // Ăn mồi
+                let range = 80 + (this.config.stats[2] * 20);
+                if (this.isPlayer && activeItems.includes('magnet')) range *= 2.5;
+
+                foods.forEach((f, i) => {
+                    const d = Math.hypot(f.x - this.x, f.y - this.y);
+                    if (d < range) {
+                        f.x += (this.x - f.x) * 0.15;
+                        f.y += (this.y - f.y) * 0.15;
+                    }
+                    if (d < 25) {
+                        this.length += 0.5;
+                        this.essence += 2;
+                        foods.splice(i, 1);
+                        if (foods.length < 800) spawnFood();
+                    }
+                });
+            }
+
+            useSkill() {
+                const now = Date.now();
+                if (now - this.lastSkillTime < this.config.cd) return;
+                this.lastSkillTime = now;
+
+                switch(this.type) {
+                    case 'glitch':
+                        this.x += Math.cos(this.angle) * 450;
+                        this.y += Math.sin(this.angle) * 450;
+                        break;
+                    case 'titanium':
+                        this.shield = true;
+                        setTimeout(() => this.shield = false, 4000);
+                        break;
+                    case 'chrono':
+                        bots.forEach(b => {
+                            if (Math.hypot(b.x-this.x, b.y-this.y) < 1000) {
+                                b.speedMult = 0.2;
+                                setTimeout(() => b.speedMult = 1, 3000);
+                            }
+                        });
+                        break;
+                    case 'glass':
+                        this.invisible = true;
+                        setTimeout(() => this.invisible = false, 5000);
+                        break;
+                }
+            }
+
+            draw() {
+                if (this.invisible && !this.isPlayer) return;
+                ctx.save();
+                ctx.globalAlpha = this.invisible ? 0.2 : 1;
+                ctx.strokeStyle = this.config.color;
+                
+                // Hiệu ứng phát sáng & thay đổi độ dày khi Dash
+                if (this.isBoosting) {
+                    ctx.lineWidth = 24 * camera.zoom; // Thuôn gọn lại khi chạy nhanh
+                    ctx.shadowBlur = 30 + Math.random() * 15; // Phát sáng dao động mãnh liệt
+                } else {
+                    ctx.lineWidth = 28 * camera.zoom; // Bình thường
+                    ctx.shadowBlur = 15; // Sáng nhẹ
+                }
+                
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = this.config.color;
+
+                ctx.beginPath();
+                this.segments.forEach((s, i) => {
+                    const sx = (s.x - camera.x) * camera.zoom + canvas.width/2;
+                    const sy = (s.y - camera.y) * camera.zoom + canvas.height/2;
+                    if (i === 0) ctx.moveTo(sx, sy);
+                    else ctx.lineTo(sx, sy);
+                });
+                ctx.stroke();
+
+                if (this.shield) {
+                    ctx.beginPath();
+                    ctx.arc((this.x - camera.x)*camera.zoom + canvas.width/2, (this.y - camera.y)*camera.zoom + canvas.height/2, 55*camera.zoom, 0, Math.PI*2);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 20;
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        function spawnFood() {
+            foods.push({
+                x: (Math.random()-0.5)*WORLD_SIZE,
+                y: (Math.random()-0.5)*WORLD_SIZE,
+                color: `hsl(${Math.random()*360}, 80%, 60%)`,
+                r: Math.random()*3 + 2
+            });
+        }
+
+        function startGame() {
+            isPlaying = true;
+            document.getElementById('screen-lobby').classList.add('hidden');
+            document.getElementById('screen-hud').style.opacity = 1;
+            state.matches++;
+            
+            const tags = document.getElementById('active-items-hud');
+            tags.innerHTML = '';
+            activeItems.forEach(id => {
+                const item = ITEM_POOL.find(it => it.id === id);
+                tags.innerHTML += `<span class="active-item-tag">${item.icon}</span>`;
+            });
+
+            player = new Snake(0, 0, currentSpecies, true);
+            bots = [];
+            const types = Object.keys(SPECIES);
+            for(let i=0; i<18; i++) {
+                bots.push(new Snake((Math.random()-0.5)*WORLD_SIZE, (Math.random()-0.5)*WORLD_SIZE, types[Math.floor(Math.random()*types.length)], false));
+            }
+            foods = [];
+            particles = []; // Reset particles
+            for(let i=0; i<1000; i++) spawnFood();
+        }
+
+        function gameLoop() {
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (isPlaying) {
+                // Di chuyển camera theo player
+                camera.x += (player.x - camera.x) * 0.1;
+                camera.y += (player.y - camera.y) * 0.1;
+
+                // --- HIỆU ỨNG ZOOM CAMERA KHI DASH ---
+                // Khi tăng tốc, camera mở rộng ra (zoom nhỏ lại) để tạo cảm giác tốc độ
+                camera.targetZoom = player.isBoosting ? 0.72 : 0.85;
+                camera.zoom += (camera.targetZoom - camera.zoom) * 0.05; // Nội suy mượt mà
+
+                drawGrid();
+
+                /* CẬP NHẬT TRẠNG THÁI DI CHUYỂN */
+                player.update();
+                bots.forEach(b => b.update());
+
+                /* KIỂM TRA VA CHẠM ĐẦU - THÂN (SLITHER.IO STYLE) */
+                let allSnakes = [player, ...bots];
+                let deadBots = [];
+                let playerDied = false;
+
+                for (let i = 0; i < allSnakes.length; i++) {
+                    let snake = allSnakes[i];
+                    let isDead = false;
+
+                    for (let j = 0; j < allSnakes.length; j++) {
+                        if (i === j) continue; // Không tự kiểm tra với chính mình
+                        let otherSnake = allSnakes[j];
+                        
+                        // Đầu của 'snake' chạm vào bất kỳ đốt nào của 'otherSnake'
+                        for (let k = 0; k < otherSnake.segments.length; k += 2) {
+                            let seg = otherSnake.segments[k];
+                            let d = Math.hypot(snake.x - seg.x, snake.y - seg.y);
+                            if (d < 24) { // Bán kính va chạm lý tưởng
+                                if (snake === player && player.shield) {
+                                    player.shield = false; // Khiên cứu mạng 1 lần
+                                    isDead = false;
+                                    break; 
+                                } else {
+                                    isDead = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (isDead) break;
+                    }
+
+                    if (isDead) {
+                        // Rắn chết biến thành nhiều thức ăn (Dựa trên kích thước)
+                        snake.segments.forEach((seg, idx) => {
+                            if (idx % 2 === 0) { // Cứ 2 đốt rơi 1 cục mồi to để đỡ lag
+                                foods.push({
+                                    x: seg.x + (Math.random()-0.5)*20,
+                                    y: seg.y + (Math.random()-0.5)*20,
+                                    color: snake.config.color,
+                                    r: Math.random() * 4 + 4 // Mồi to hơn bình thường
+                                });
+                            }
+                        });
+
+                        if (snake === player) playerDied = true;
+                        else deadBots.push(snake);
+                    }
+                }
+
+                /* XÓA BOTS CHẾT */
+                deadBots.forEach(b => {
+                    const idx = bots.indexOf(b);
+                    if (idx > -1) bots.splice(idx, 1);
+                });
+
+                /* XỬ LÝ THẮNG THUA */
+                if (playerDied) {
+                    endGame(false);
+                    return; 
+                }
+                if (bots.length === 0) {
+                    endGame(true); // Thắng khi toàn bộ 18 bot bị tiêu diệt
+                    return;
+                }
+
+                // --- XỬ LÝ HẠT (PARTICLES) MỚI ---
+                ctx.save();
+                // Duyệt ngược mảng để xoá an toàn (Fix bug nháy hình do dùng forEach + splice)
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    let p = particles[i];
+                    p.life -= p.decay || 0.02;
+                    
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    // Cập nhật vị trí hạt (gia tốc)
+                    if (p.vx !== undefined) p.x += p.vx;
+                    if (p.vy !== undefined) p.y += p.vy;
+
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life;
+                    
+                    // Thêm glow nhẹ cho particles
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = p.color;
+                    
+                    ctx.beginPath();
+                    ctx.arc((p.x - camera.x) * camera.zoom + canvas.width/2, (p.y - camera.y) * camera.zoom + canvas.height/2, p.r * camera.zoom, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // Vẽ mồi
+                foods.forEach(f => {
+                    const sx = (f.x - camera.x)*camera.zoom + canvas.width/2;
+                    const sy = (f.y - camera.y)*camera.zoom + canvas.height/2;
+                    if (sx < -20 || sx > canvas.width+20 || sy < -20 || sy > canvas.height+20) return;
+                    ctx.fillStyle = f.color;
+                    ctx.beginPath(); ctx.arc(sx, sy, f.r*camera.zoom, 0, Math.PI*2); ctx.fill();
+                });
+
+                // Vẽ rắn
+                player.draw();
+                bots.forEach(b => b.draw());
+
+                updateHUD();
+                drawMinimap();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+            ctx.lineWidth = 1;
+            const step = 400 * camera.zoom;
+            const startX = Math.floor((-WORLD_SIZE/2 - camera.x)*camera.zoom + canvas.width/2);
+            const startY = Math.floor((-WORLD_SIZE/2 - camera.y)*camera.zoom + canvas.height/2);
+            const endX = Math.floor((WORLD_SIZE/2 - camera.x)*camera.zoom + canvas.width/2);
+            const endY = Math.floor((WORLD_SIZE/2 - camera.y)*camera.zoom + canvas.height/2);
+
+            for(let x = -WORLD_SIZE/2; x <= WORLD_SIZE/2; x += 400) {
+                const sx = (x - camera.x)*camera.zoom + canvas.width/2;
+                ctx.beginPath(); ctx.moveTo(sx, startY); ctx.lineTo(sx, endY); ctx.stroke();
+            }
+            for(let y = -WORLD_SIZE/2; y <= WORLD_SIZE/2; y += 400) {
+                const sy = (y - camera.y)*camera.zoom + canvas.height/2;
+                ctx.beginPath(); ctx.moveTo(startX, sy); ctx.lineTo(endX, sy); ctx.stroke();
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-essence').innerText = Math.floor(player.essence);
+            const rank = bots.filter(b => b.length > player.length).length + 1;
+            document.getElementById('hud-rank').innerText = `#${rank}`;
+            
+            // Cập nhật số người còn sống
+            document.getElementById('hud-alive').innerText = `${bots.length + 1}`;
+
+            const cd = player.config.cd;
+            const elapsed = Date.now() - player.lastSkillTime;
+            const pct = Math.max(0, 100 - (elapsed / cd) * 100);
+            document.getElementById('cd-skill').style.height = pct + '%';
+        }
+
+        function drawMinimap() {
+            miniCtx.fillStyle = 'rgba(0,0,0,0.6)';
+            miniCtx.fillRect(0, 0, 96, 96);
+            const scale = (v) => (v / WORLD_SIZE + 0.5) * 96;
+            
+            miniCtx.fillStyle = '#22d3ee';
+            miniCtx.beginPath(); miniCtx.arc(scale(player.x), scale(player.y), 3, 0, Math.PI*2); miniCtx.fill();
+
+            if (activeItems.includes('radar')) {
+                miniCtx.fillStyle = '#f43f5e';
+                bots.forEach(b => {
+                    miniCtx.beginPath(); miniCtx.arc(scale(b.x), scale(b.y), 1.5, 0, Math.PI*2); miniCtx.fill();
+                });
+            }
+        }
+
+        function endGame(isWin) {
+            isPlaying = false;
+            if(isWin) state.wins++;
+            state.essence += Math.floor(player.essence);
+            activeItems = []; 
+            save();
+            document.getElementById('screen-hud').style.opacity = 0;
+            document.getElementById('screen-lobby').classList.remove('hidden');
+            updateStatsUI();
+        }
+    </script>
+</body>
+</html>
