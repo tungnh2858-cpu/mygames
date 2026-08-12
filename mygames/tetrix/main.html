@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Tetris</title>
+    <link rel="icon" href="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff66;
+            --neon-yellow: #fcee0a;
+            --neon-orange: #ff5e00;
+            --neon-purple: #9d00ff;
+            --neon-red: #ff003c;
+            --bg-dark: #050510;
+            --grid-line: rgba(0, 243, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #1a1a3a 0%, var(--bg-dark) 100%),
+                linear-gradient(0deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+            padding-top: 1rem;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: transparent;
+            -webkit-text-stroke: 1px var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink), 0 0 40px var(--neon-pink);
+            margin-bottom: 1rem;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            padding: 0 10px;
+        }
+
+        .board-wrapper {
+            position: relative;
+            padding: 4px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), inset 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        #tetris-board {
+            background-color: rgba(5, 5, 16, 0.95);
+            display: block;
+            border-radius: 4px;
+            /* Default aspect ratio, controlled by JS */
+            width: 300px;
+            height: 600px;
+        }
+
+        .ui-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 310px; /* Aligns with max board width + padding */
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 5px var(--neon-blue) inset;
+            padding: 0.5rem;
+            text-align: center;
+            border-radius: 4px;
+            flex: 1;
+            margin: 0 0.25rem;
+            font-family: 'Orbitron', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 5px var(--neon-yellow);
+            margin-top: 0.2rem;
+        }
+
+        #next-piece-wrapper {
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid var(--neon-pink);
+            box-shadow: 0 0 5px var(--neon-pink) inset;
+            border-radius: 4px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #next-piece-canvas {
+            background-color: transparent;
+            width: 70px;
+            height: 70px;
+        }
+
+        .btn-cyber {
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            color: #fff;
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--neon-blue);
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2), inset 0 0 5px rgba(0, 243, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-cyber:hover {
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 15px var(--neon-blue), inset 0 0 10px var(--neon-blue);
+            text-shadow: 0 0 5px #fff;
+        }
+        
+        .btn-cyber:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-red {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.2), inset 0 0 5px rgba(255, 0, 60, 0.2);
+        }
+        .btn-red:hover {
+            background: rgba(255, 0, 60, 0.2);
+            box-shadow: 0 0 15px var(--neon-red), inset 0 0 10px var(--neon-red);
+        }
+
+        /* Screen Shake Effect */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        
+        .shake-active {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Green Button for Overclock Skill */
+        .btn-green {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2), inset 0 0 5px rgba(0, 255, 102, 0.2);
+        }
+        .btn-green:hover:not(:disabled) {
+            background: rgba(0, 255, 102, 0.2);
+            box-shadow: 0 0 15px var(--neon-green), inset 0 0 10px var(--neon-green);
+            color: #fff;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(5, 5, 16, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            display: none;
+            border-radius: 4px;
+        }
+        
+        .overlay-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-red);
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--neon-red), 0 0 20px var(--neon-red);
+            text-align: center;
+        }
+
+        #mobile-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 320px;
+            padding: 0 10px;
+        }
+
+        .control-btn {
+            background: rgba(10, 10, 25, 0.6);
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+            user-select: none;
+            touch-action: manipulation;
+            box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.1);
+        }
+        
+        .control-btn:active {
+            background: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 15px var(--neon-blue);
+            color: #fff;
+        }
+
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 2; }
+        #btn-rotate { grid-column: 2; grid-row: 1; }
+        #btn-drop { 
+            grid-column: 1 / span 3; 
+            grid-row: 3; 
+            padding: 12px; 
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink);
+            box-shadow: inset 0 0 10px rgba(255, 0, 255, 0.1);
+        }
+        #btn-drop:active {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 15px var(--neon-pink);
+            color: #fff;
+        }
+
+        /* --- SHOP & INVENTORY STYLES --- */
+        #shop-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(5, 5, 16, 0.95);
+            backdrop-filter: blur(8px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 20;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid var(--neon-purple);
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.3);
+        }
+        
+        .shop-header {
+            color: var(--neon-purple);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px var(--neon-purple);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .shop-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+            overflow-y: auto;
+            max-height: 70%;
+        }
+
+        .shop-item {
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .shop-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .shop-item-name {
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .shop-item-desc {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.7rem;
+        }
+
+        .btn-buy {
+            background: transparent;
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            box-shadow: 0 0 5px rgba(252, 238, 10, 0.2) inset;
+        }
+        
+        .btn-buy:hover:not(:disabled) {
+            background: rgba(252, 238, 10, 0.2);
+            box-shadow: 0 0 10px var(--neon-yellow) inset, 0 0 10px var(--neon-yellow);
+        }
+        
+        .btn-buy:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .inventory-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 0.5rem;
+        }
+
+        .inv-btn {
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            padding: 0.4rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .inv-btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.1);
+        }
+        .inv-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .inv-count {
+            position: absolute;
+            top: -5px; right: -5px;
+            background: var(--neon-purple);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 10px;
+        }
+        .stasis-active-bg {
+            animation: stasisPulse 2s infinite;
+        }
+        @keyframes stasisPulse {
+            0% { box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), inset 0 0 10px rgba(0, 243, 255, 0); }
+            50% { box-shadow: 0 0 25px rgba(0, 243, 255, 0.8), inset 0 0 30px rgba(0, 243, 255, 0.4); }
+            100% { box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), inset 0 0 10px rgba(0, 243, 255, 0); }
+        }
+
+        /* Desktop specific adjustments */
+        @media (min-width: 768px) {
+            #mobile-controls {
+                display: none;
+            }
+            body {
+                justify-content: center;
+                padding-top: 0;
+            }
+            h1 {
+                font-size: 3.5rem;
+                margin-bottom: 2rem;
+            }
+            #game-container {
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: center;
+                max-width: 800px;
+            }
+            .ui-panel {
+                flex-direction: column;
+                width: 150px;
+                margin-bottom: 0;
+                gap: 1rem;
+            }
+            #next-piece-wrapper {
+                height: 120px;
+            }
+            #next-piece-canvas {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>NEON TETRIS</h1>
+
+    <div id="game-container">
+        
+        <!-- Left/Top Panel for Score/Level -->
+        <div class="ui-panel">
+            <div class="info-box">
+                <div class="info-label">SCORE</div>
+                <div id="score" class="info-value">0</div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">LEVEL</div>
+                <div id="level" class="info-value">1</div>
+            </div>
+            <div class="info-box border-[var(--neon-yellow)]">
+                <div class="info-label text-[var(--neon-yellow)]">CREDITS</div>
+                <div id="credits" class="info-value text-[var(--neon-yellow)]">0</div>
+            </div>
+            
+            <!-- Desktop only actions -->
+            <div class="hidden md:flex flex-col gap-3 mt-4 w-full">
+                <button id="shop-btn-desk" class="btn-cyber border-[var(--neon-purple)] text-[var(--neon-purple)] w-full">BLACK MARKET</button>
+                <button id="pause-btn-desk" class="btn-cyber w-full">PAUSE</button>
+                <button id="restart-btn-desk" class="btn-cyber btn-red w-full">RESTART</button>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div class="board-wrapper">
+            <canvas id="tetris-board" width="300" height="600"></canvas>
+            
+            <div id="overlay">
+                <div class="overlay-title" id="overlay-title">SYSTEM<br>FAILURE</div>
+                <div class="mb-6 text-center font-['Orbitron']">
+                    <div class="text-sm text-gray-400">FINAL SCORE</div>
+                    <div id="final-score" class="text-3xl text-[var(--neon-yellow)] drop-shadow-[0_0_8px_var(--neon-yellow)]">0</div>
+                </div>
+                <button id="start-btn" class="btn-cyber text-lg px-8 py-3">INITIALIZE</button>
+            </div>
+
+            <!-- Shop Overlay -->
+            <div id="shop-overlay">
+                <div class="shop-header">BLACK MARKET</div>
+                <div class="text-[var(--neon-yellow)] font-bold mb-4 font-['Orbitron']">CREDITS: <span id="shop-credits">0</span></div>
+                
+                <div class="shop-items">
+                    <div class="shop-item">
+                        <div class="shop-item-info">
+                            <span class="shop-item-name text-[var(--neon-green)]">ENERGY REFILL</span>
+                            <span class="shop-item-desc">Instantly max out EMP energy.</span>
+                        </div>
+                        <button class="btn-buy" onclick="buyItem('energy', 50)">50 C</button>
+                    </div>
+                    <div class="shop-item">
+                        <div class="shop-item-info">
+                            <span class="shop-item-name text-[var(--neon-blue)]">STASIS MODULE</span>
+                            <span class="shop-item-desc">Slow time by 60% for 15s. (Key: S)</span>
+                        </div>
+                        <button class="btn-buy" onclick="buyItem('stasis', 100)">100 C</button>
+                    </div>
+                    <div class="shop-item">
+                        <div class="shop-item-info">
+                            <span class="shop-item-name text-[var(--neon-red)]">HACK: BOMB</span>
+                            <span class="shop-item-desc">Force next piece to be a Bomb. (Key: H)</span>
+                        </div>
+                        <button class="btn-buy" onclick="buyItem('bomb', 150)">150 C</button>
+                    </div>
+                </div>
+                
+                <button id="close-shop-btn" class="btn-cyber mt-4 w-full">EXIT STORE</button>
+            </div>
+        </div>
+        
+        <!-- Right/Bottom Panel for Next Piece -->
+        <div class="ui-panel justify-end md:justify-start">
+             <div class="info-box border-[var(--neon-pink)] !flex-none md:w-full">
+                <div class="info-label text-[var(--neon-pink)]">NEXT</div>
+                <div id="next-piece-wrapper" class="mt-2">
+                    <canvas id="next-piece-canvas" width="100" height="100"></canvas>
+                </div>
+            </div>
+            
+            <!-- RPG Element: Energy Bar -->
+            <div class="info-box border-[var(--neon-green)] !flex-none md:w-full mt-2 md:mt-4">
+                <div class="info-label text-[var(--neon-green)]">ENERGY</div>
+                <div class="w-full bg-gray-900 h-4 mt-2 rounded overflow-hidden border border-gray-700">
+                    <div id="energy-bar" class="h-full bg-[var(--neon-green)] w-0 transition-all duration-300 shadow-[0_0_10px_var(--neon-green)]"></div>
+                </div>
+            </div>
+
+            <!-- Inventory Panel -->
+            <div class="inventory-panel md:w-full mt-2">
+                <button id="btn-use-stasis" class="inv-btn border-[var(--neon-blue)] text-[var(--neon-blue)]" disabled>
+                    ❄️ STASIS
+                    <div id="stasis-count" class="inv-count">0</div>
+                </button>
+                <button id="btn-use-hack" class="inv-btn border-[var(--neon-red)] text-[var(--neon-red)]" disabled>
+                    💣 HACK
+                    <div id="hack-count" class="inv-count !bg-[var(--neon-red)]">0</div>
+                </button>
+            </div>
+            
+            <!-- Desktop Overclock Button -->
+            <button id="btn-overclock-desk" class="btn-cyber border-[var(--neon-green)] text-[var(--neon-green)] hidden md:block mt-4 w-full opacity-50 cursor-not-allowed transition-all">OVERCLOCK (E)</button>
+        </div>
+        
+        <!-- Mobile only actions -->
+        <div class="flex md:hidden w-full max-w-[310px] gap-2 mt-2">
+            <button id="shop-btn-mob" class="btn-cyber flex-1 !text-xs !px-1 border-[var(--neon-purple)] text-[var(--neon-purple)]">SHOP</button>
+            <button id="pause-btn-mob" class="btn-cyber flex-1 !text-xs !px-1">PAUSE</button>
+            <button id="restart-btn-mob" class="btn-cyber btn-red flex-1 !text-xs !px-1">RESTART</button>
+            <button id="btn-overclock-mob" class="btn-cyber border-[var(--neon-green)] text-[var(--neon-green)] flex-1 !text-xs !px-1 opacity-50">EMP</button>
+        </div>
+
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+        <div id="btn-rotate" class="control-btn">↻</div>
+        <div id="btn-left" class="control-btn">←</div>
+        <div id="btn-down" class="control-btn">↓</div>
+        <div id="btn-right" class="control-btn">→</div>
+        <div id="btn-drop" class="control-btn">HARD DROP</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('tetris-board');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimize for no transparency background
+        const nextCanvas = document.getElementById('next-piece-canvas');
+        const nextCtx = nextCanvas.getContext('2d');
+
+        // Game Constants
+        const COLS = 10;
+        const ROWS = 20;
+        let BLOCK_SIZE = 30; // Dynamic based on canvas size
+        
+        // Cyberpunk Colors for tetrominos
+        const COLORS = [
+            null,
+            '#00f3ff', // I - Neon Blue
+            '#0044ff', // J - Deep Blue
+            '#ff5e00', // L - Neon Orange
+            '#fcee0a', // O - Neon Yellow
+            '#00ff66', // S - Neon Green
+            '#9d00ff', // T - Neon Purple
+            '#ff003c', // Z - Neon Red
+            '#ffffff'  // 8 - BOMB BLOCK
+        ];
+
+        const SHAPES = [
+            [],
+            // I
+            [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+            // J
+            [[2, 0, 0], [2, 2, 2], [0, 0, 0]],
+            // L
+            [[0, 0, 3], [3, 3, 3], [0, 0, 0]],
+            // O
+            [[4, 4], [4, 4]],
+            // S
+            [[0, 5, 5], [5, 5, 0], [0, 0, 0]],
+            // T
+            [[0, 6, 0], [6, 6, 6], [0, 0, 0]],
+            // Z
+            [[7, 7, 0], [0, 7, 7], [0, 0, 0]],
+            // BOMB
+            [[8]]
+        ];
+
+        let board = [];
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        
+        // RPG Element: Energy & Shop
+        let energy = 0;
+        const MAX_ENERGY = 100;
+        let credits = 0;
+        let invStasis = 0;
+        let invHack = 0;
+        let isStasisActive = false;
+        let stasisTimer = null;
+        
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+        
+        let requestID = null;
+        let isPaused = false;
+        let isGameOver = false;
+        let isShopOpen = false;
+
+        let player = { pos: {x: 0, y: 0}, matrix: null, type: 0 };
+        let nextPlayer = { matrix: null, type: 0 };
+
+        // Particles for line clear effect
+        let particles = [];
+
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const creditsElement = document.getElementById('credits');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const startBtn = document.getElementById('start-btn');
+        const finalScoreElement = document.getElementById('final-score');
+        
+        const energyBar = document.getElementById('energy-bar');
+        const btnOverclockDesk = document.getElementById('btn-overclock-desk');
+        const btnOverclockMob = document.getElementById('btn-overclock-mob');
+        const gameContainer = document.getElementById('game-container');
+        
+        const pauseBtnDesk = document.getElementById('pause-btn-desk');
+        const restartBtnDesk = document.getElementById('restart-btn-desk');
+        const pauseBtnMob = document.getElementById('pause-btn-mob');
+        const restartBtnMob = document.getElementById('restart-btn-mob');
+
+        // Shop Elements
+        const shopOverlay = document.getElementById('shop-overlay');
+        const shopCredits = document.getElementById('shop-credits');
+        const shopBtnDesk = document.getElementById('shop-btn-desk');
+        const shopBtnMob = document.getElementById('shop-btn-mob');
+        const closeShopBtn = document.getElementById('close-shop-btn');
+        const stasisCountEl = document.getElementById('stasis-count');
+        const hackCountEl = document.getElementById('hack-count');
+        const btnUseStasis = document.getElementById('btn-use-stasis');
+        const btnUseHack = document.getElementById('btn-use-hack');
+
+        function createMatrix(w, h) {
+            const matrix = [];
+            while (h--) matrix.push(new Array(w).fill(0));
+            return matrix;
+        }
+
+        function collide(board, player) {
+            const m = player.matrix;
+            if (!m) return false;
+            const o = player.pos;
+            for (let y = 0; y < m.length; ++y) {
+                for (let x = 0; x < m[y].length; ++x) {
+                    if (m[y][x] !== 0 && (board[y + o.y] && board[y + o.y][x + o.x]) !== 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function merge(board, player) {
+            let isBombLanded = false;
+            let bombX = 0, bombY = 0;
+
+            player.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        board[y + player.pos.y][x + player.pos.x] = value;
+                        if (value === 8) {
+                            isBombLanded = true;
+                            bombX = x + player.pos.x;
+                            bombY = y + player.pos.y;
+                        }
+                    }
+                });
+            });
+
+            if (isBombLanded) {
+                triggerBomb(bombX, bombY);
+            }
+        }
+
+        function triggerBomb(bx, by) {
+            shakeScreen();
+            let destroyed = 0;
+            // Xóa khu vực 3x3 xung quanh bom
+            for (let y = -1; y <= 1; y++) {
+                for (let x = -1; x <= 1; x++) {
+                    const targetY = by + y;
+                    const targetX = bx + x;
+                    if (targetY >= 0 && targetY < ROWS && targetX >= 0 && targetX < COLS) {
+                        if (board[targetY][targetX] !== 0) {
+                            board[targetY][targetX] = 0;
+                            createExplosionParticles(targetX, targetY, '#ff003c');
+                            destroyed++;
+                        }
+                    }
+                }
+            }
+            score += destroyed * 20;
+            updateScore();
+            
+            // Giả lập trọng lực: Các khối phía trên lỗ hổng sẽ rơi xuống
+            for (let x = Math.max(0, bx - 1); x <= Math.min(COLS - 1, bx + 1); x++) {
+                let writeY = ROWS - 1;
+                for (let y = ROWS - 1; y >= 0; y--) {
+                    if (board[y][x] !== 0) {
+                        if (y !== writeY) {
+                            board[writeY][x] = board[y][x];
+                            board[y][x] = 0;
+                        }
+                        writeY--;
+                    }
+                }
+            }
+        }
+        
+        function createExplosionParticles(x, y, color) {
+            const px = x * BLOCK_SIZE + BLOCK_SIZE / 2;
+            const py = y * BLOCK_SIZE + BLOCK_SIZE / 2;
+            for(let i=0; i<8; i++) {
+                particles.push(new Particle(px, py, color));
+            }
+        }
+
+        function shakeScreen() {
+            gameContainer.classList.remove('shake-active');
+            void gameContainer.offsetWidth; // reset animation
+            gameContainer.classList.add('shake-active');
+            setTimeout(() => gameContainer.classList.remove('shake-active'), 400);
+        }
+
+        function drawBlock(ctx, x, y, size, colorIndex, isGhost = false) {
+            if (colorIndex === 0) return;
+            let color = COLORS[colorIndex];
+            
+            // Hiệu ứng nhấp nháy cho Khối Bom (số 8)
+            if (colorIndex === 8 && !isGhost) {
+                const flash = Math.floor(Date.now() / 100) % 2 === 0;
+                color = flash ? '#ff003c' : '#ffffff'; 
+            }
+
+            const px = x * size;
+            const py = y * size;
+            
+            if (isGhost) {
+                // Ghost piece styling
+                ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                ctx.fillRect(px + 1, py + 1, size - 2, size - 2);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(px + 1, py + 1, size - 2, size - 2);
+                return;
+            }
+
+            // Solid inner block
+            ctx.fillStyle = color;
+            ctx.fillRect(px + 2, py + 2, size - 4, size - 4);
+            
+            // Neon glow effect
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = color;
+            
+            // Lighter inner border
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(px + 2, py + 2, size - 4, size - 4);
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+
+            // Glossy highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(px + 2, py + 2);
+            ctx.lineTo(px + size / 2, py + 2);
+            ctx.lineTo(px + 2, py + size / 2);
+            ctx.fill();
+        }
+
+        function drawMatrix(ctx, matrix, offset, size = BLOCK_SIZE, isGhost = false) {
+            matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        drawBlock(ctx, x + offset.x, y + offset.y, size, value, isGhost);
+                    }
+                });
+            });
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 1.0;
+                this.color = color;
+                this.size = Math.random() * 4 + 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.05;
+            }
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function createParticles(yLine) {
+            const yPx = yLine * BLOCK_SIZE + BLOCK_SIZE / 2;
+            for(let x=0; x<COLS; x++) {
+                const color = COLORS[Math.floor(Math.random() * (COLORS.length-1))+1];
+                const xPx = x * BLOCK_SIZE + BLOCK_SIZE / 2;
+                for(let i=0; i<5; i++) {
+                    particles.push(new Particle(xPx, yPx, color));
+                }
+            }
+        }
+
+        function draw() {
+            // Dark grid background
+            ctx.fillStyle = '#050510';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw cyber grid
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for(let i=0; i<=COLS; i++) {
+                ctx.beginPath(); ctx.moveTo(i * BLOCK_SIZE, 0); ctx.lineTo(i * BLOCK_SIZE, canvas.height); ctx.stroke();
+            }
+            for(let i=0; i<=ROWS; i++) {
+                ctx.beginPath(); ctx.moveTo(0, i * BLOCK_SIZE); ctx.lineTo(canvas.width, i * BLOCK_SIZE); ctx.stroke();
+            }
+
+            drawMatrix(ctx, board, {x: 0, y: 0});
+            
+            if(player.matrix) {
+                drawGhostPiece();
+                drawMatrix(ctx, player.matrix, player.pos);
+            }
+
+            // Draw particles
+            for(let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.update();
+                p.draw(ctx);
+                if(p.life <= 0) particles.splice(i, 1);
+            }
+        }
+        
+        function drawGhostPiece() {
+             const ghost = { matrix: player.matrix, pos: { x: player.pos.x, y: player.pos.y } };
+            while (!collide(board, ghost)) ghost.pos.y++;
+            ghost.pos.y--;
+            drawMatrix(ctx, ghost.matrix, ghost.pos, BLOCK_SIZE, true);
+        }
+
+        function drawNextPiece() {
+            nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            if (nextPlayer.matrix) {
+                // Calculate size based on canvas to fit nicely
+                const pSize = Math.min(nextCanvas.width / 5, nextCanvas.height / 5);
+                const m = nextPlayer.matrix;
+                
+                let minX = m[0].length, maxX = 0, minY = m.length, maxY = 0;
+                for(let y=0; y<m.length; y++) {
+                    for(let x=0; x<m[y].length; x++) {
+                        if(m[y][x]) {
+                            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+                            minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+                        }
+                    }
+                }
+                
+                const w = (maxX - minX + 1) * pSize;
+                const h = (maxY - minY + 1) * pSize;
+                const offsetX = (nextCanvas.width - w) / 2 - (minX * pSize);
+                const offsetY = (nextCanvas.height - h) / 2 - (minY * pSize);
+                
+                m.forEach((row, y) => {
+                    row.forEach((value, x) => {
+                        if (value !== 0) {
+                             const px = offsetX + x * pSize;
+                             const py = offsetY + y * pSize;
+                             const color = COLORS[value];
+                             
+                             // Draw next block with cyber style
+                             nextCtx.fillStyle = color;
+                             nextCtx.fillRect(px+1, py+1, pSize-2, pSize-2);
+                             nextCtx.strokeStyle = '#fff';
+                             nextCtx.lineWidth = 1;
+                             nextCtx.strokeRect(px+1, py+1, pSize-2, pSize-2);
+                             
+                             // Glow
+                             nextCtx.shadowBlur = 5;
+                             nextCtx.shadowColor = color;
+                             nextCtx.strokeRect(px+1, py+1, pSize-2, pSize-2);
+                             nextCtx.shadowBlur = 0;
+                        }
+                    });
+                });
+            }
+        }
+
+        function playerDrop() {
+            if(isPaused || isGameOver || !player.matrix) return;
+            player.pos.y++;
+            if (collide(board, player)) {
+                player.pos.y--;
+                merge(board, player);
+                playerReset();
+                boardSweep();
+                updateScore();
+            }
+            dropCounter = 0;
+        }
+        
+        function playerHardDrop() {
+             if(isPaused || isGameOver || !player.matrix) return;
+             let dropDistance = 0;
+             while (!collide(board, player)) {
+                player.pos.y++;
+                dropDistance++;
+             }
+             player.pos.y--;
+             merge(board, player);
+             playerReset();
+             boardSweep();
+             // Bonus for hard drop
+             score += Math.max(0, dropDistance - 1) * 2;
+             updateScore();
+             dropCounter = 0;
+        }
+
+        function playerMove(offset) {
+             if(isPaused || isGameOver || !player.matrix) return;
+            player.pos.x += offset;
+            if (collide(board, player)) player.pos.x -= offset;
+        }
+
+        function playerRotate() {
+            if(isPaused || isGameOver || !player.matrix) return;
+            const pos = player.pos.x;
+            let offset = 1;
+            rotate(player.matrix);
+            while (collide(board, player)) {
+                player.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > player.matrix[0].length) {
+                    rotate(player.matrix, -1);
+                    player.pos.x = pos;
+                    return;
+                }
+            }
+        }
+
+        function rotate(matrix, dir = 1) {
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+            if (dir > 0) matrix.forEach(row => row.reverse());
+            else matrix.reverse();
+        }
+
+        function boardSweep() {
+            let rowCount = 1;
+            let linesCleared = 0;
+            outer: for (let y = board.length - 1; y >= 0; --y) {
+                for (let x = 0; x < board[y].length; ++x) {
+                    if (board[y][x] === 0) continue outer;
+                }
+
+                // Add particles before removing row
+                createParticles(y);
+
+                const row = board.splice(y, 1)[0].fill(0);
+                board.unshift(row);
+                ++y;
+
+                score += rowCount * 100 * level; // Level multiplier
+                rowCount *= 2;
+                linesCleared++;
+                lines++;
+            }
+            
+            if (linesCleared > 0) {
+                // Tăng năng lượng dựa trên số hàng đã xóa
+                const energyGain = [0, 15, 40, 70, 100][linesCleared] || 100;
+                updateEnergy(energyGain);
+                
+                // Nhận Credits
+                const creditsGain = [0, 10, 30, 60, 100][linesCleared] || 100;
+                credits += creditsGain * level;
+                updateScore();
+            }
+
+            if (lines >= level * 10) {
+                level++;
+                shakeScreen(); // Rung màn hình khi lên cấp
+                dropInterval = Math.max(100, 1000 - (level - 1) * 100);
+            }
+        }
+
+        function updateEnergy(amount) {
+            energy = Math.min(MAX_ENERGY, energy + amount);
+            energyBar.style.width = (energy / MAX_ENERGY * 100) + '%';
+            
+            if (energy === MAX_ENERGY) {
+                btnOverclockDesk.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnOverclockDesk.classList.add('btn-green');
+                btnOverclockMob.classList.remove('opacity-50');
+                btnOverclockMob.classList.add('btn-green');
+                btnOverclockDesk.innerText = "OVERCLOCK (E) [READY]";
+            } else {
+                btnOverclockDesk.classList.add('opacity-50', 'cursor-not-allowed');
+                btnOverclockDesk.classList.remove('btn-green');
+                btnOverclockMob.classList.add('opacity-50');
+                btnOverclockMob.classList.remove('btn-green');
+                btnOverclockDesk.innerText = "OVERCLOCK (E)";
+            }
+        }
+        
+        function activateOverclock() {
+            if (energy < MAX_ENERGY || isPaused || isGameOver) return;
+            
+            // Kỹ năng EMP: Xóa lập tức 3 hàng dưới cùng
+            shakeScreen();
+            let cleared = 0;
+            for (let y = ROWS - 1; y >= ROWS - 3; y--) {
+                createParticles(y);
+                board.splice(y, 1);
+                board.unshift(new Array(COLS).fill(0));
+                cleared++;
+            }
+            score += cleared * 200 * level;
+            updateScore();
+            
+            // Reset Năng lượng
+            energy = 0;
+            updateEnergy(0);
+        }
+
+        // --- SHOP & SKILLS LOGIC ---
+        function toggleShop() {
+            if (isGameOver || !player.matrix) return;
+            isShopOpen = !isShopOpen;
+            
+            if (isShopOpen) {
+                isPaused = true;
+                shopCredits.innerText = credits;
+                updateShopButtons();
+                shopOverlay.style.display = 'flex';
+                cancelAnimationFrame(requestID);
+            } else {
+                shopOverlay.style.display = 'none';
+                isPaused = false;
+                lastTime = performance.now();
+                update();
+            }
+        }
+
+        function updateShopButtons() {
+            document.querySelectorAll('.btn-buy').forEach(btn => {
+                const cost = parseInt(btn.innerText);
+                btn.disabled = credits < cost;
+            });
+        }
+
+        function buyItem(type, cost) {
+            if (credits >= cost) {
+                credits -= cost;
+                shopCredits.innerText = credits;
+                updateScore();
+                
+                if (type === 'energy') {
+                    updateEnergy(MAX_ENERGY);
+                } else if (type === 'stasis') {
+                    invStasis++;
+                    updateInventory();
+                } else if (type === 'bomb') {
+                    invHack++;
+                    updateInventory();
+                }
+                updateShopButtons();
+            }
+        }
+
+        function updateInventory() {
+            stasisCountEl.innerText = invStasis;
+            hackCountEl.innerText = invHack;
+            btnUseStasis.disabled = invStasis === 0;
+            btnUseHack.disabled = invHack === 0;
+        }
+
+        function activateStasis() {
+            if (invStasis <= 0 || isStasisActive || isPaused || isGameOver) return;
+            invStasis--;
+            updateInventory();
+            
+            isStasisActive = true;
+            document.querySelector('.board-wrapper').classList.add('stasis-active-bg');
+            
+            if (stasisTimer) clearTimeout(stasisTimer);
+            stasisTimer = setTimeout(() => {
+                isStasisActive = false;
+                document.querySelector('.board-wrapper').classList.remove('stasis-active-bg');
+            }, 15000); // 15 seconds
+        }
+
+        function activateHack() {
+            if (invHack <= 0 || isPaused || isGameOver) return;
+            invHack--;
+            updateInventory();
+            
+            // Đổi khối tiếp theo thành Bom
+            nextPlayer.type = 8;
+            nextPlayer.matrix = JSON.parse(JSON.stringify(SHAPES[8]));
+            drawNextPiece();
+            
+            // Hiệu ứng chớp nhoáng
+            nextCanvas.parentElement.style.boxShadow = "0 0 20px var(--neon-red)";
+            setTimeout(() => {
+                nextCanvas.parentElement.style.boxShadow = "0 0 5px var(--neon-pink) inset";
+            }, 500);
+        }
+
+        function getRandomPiece() {
+            // Có 6% tỷ lệ xuất hiện Khối Bom đặc biệt
+            const isBomb = Math.random() < 0.06;
+            const typeId = isBomb ? 8 : Math.floor(Math.random() * (SHAPES.length - 2)) + 1;
+            return { type: typeId, matrix: JSON.parse(JSON.stringify(SHAPES[typeId])) };
+        }
+
+        function playerReset() {
+            if (!nextPlayer.matrix) {
+                 const piece = getRandomPiece();
+                 nextPlayer.matrix = piece.matrix;
+                 nextPlayer.type = piece.type;
+            }
+            
+            player.matrix = nextPlayer.matrix;
+            player.type = nextPlayer.type;
+            
+            const piece = getRandomPiece();
+            nextPlayer.matrix = piece.matrix;
+            nextPlayer.type = piece.type;
+            drawNextPiece();
+            
+            player.pos.y = 0;
+            player.pos.x = (Math.floor(COLS / 2)) - (Math.floor(player.matrix[0].length / 2));
+                           
+            if (collide(board, player)) gameOver();
+        }
+
+        function updateScore() {
+            scoreElement.innerText = score;
+            levelElement.innerText = level;
+            creditsElement.innerText = credits;
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            cancelAnimationFrame(requestID);
+            overlayTitle.innerHTML = "SYSTEM<br>FAILURE";
+            finalScoreElement.innerText = score;
+            startBtn.innerText = "REBOOT";
+            overlay.style.display = 'flex';
+        }
+
+        function resetGame() {
+            board = createMatrix(COLS, ROWS);
+            score = 0; level = 1; lines = 0; dropInterval = 1000;
+            isGameOver = false; isPaused = false; isShopOpen = false;
+            particles = [];
+            
+            // Reset năng lượng & Tiền
+            energy = 0;
+            credits = 0;
+            invStasis = 0;
+            invHack = 0;
+            isStasisActive = false;
+            if (stasisTimer) clearTimeout(stasisTimer);
+            document.querySelector('.board-wrapper').classList.remove('stasis-active-bg');
+            updateEnergy(0);
+            updateInventory();
+            
+            pauseBtnDesk.innerText = "PAUSE";
+            pauseBtnMob.innerText = "PAUSE";
+            shopOverlay.style.display = 'none';
+            
+            updateScore();
+            nextPlayer.matrix = null;
+            playerReset();
+            overlay.style.display = 'none';
+            lastTime = performance.now();
+            update();
+        }
+        
+        function togglePause() {
+            if (isGameOver || !player.matrix) return;
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseBtnDesk.innerText = "RESUME";
+                pauseBtnMob.innerText = "RESUME";
+                overlayTitle.innerHTML = "SYSTEM<br>PAUSED";
+                startBtn.innerText = "RESUME";
+                overlay.style.display = 'flex';
+                cancelAnimationFrame(requestID);
+            } else {
+                pauseBtnDesk.innerText = "PAUSE";
+                pauseBtnMob.innerText = "PAUSE";
+                overlay.style.display = 'none';
+                lastTime = performance.now();
+                update();
+            }
+        }
+
+        function update(time = 0) {
+            if(isPaused || isGameOver || isShopOpen || !player.matrix) return;
+            
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            dropCounter += deltaTime;
+            
+            // Hiệu ứng Stasis: Giảm tốc độ rơi 60%
+            const currentDropInterval = isStasisActive ? dropInterval * 2.5 : dropInterval;
+            
+            if (dropCounter > currentDropInterval) {
+                playerDrop();
+            }
+
+            draw();
+            requestID = requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', event => {
+            if(isGameOver || !player.matrix) return;
+            if([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1) event.preventDefault();
+
+            if (event.keyCode === 37) playerMove(-1);
+            else if (event.keyCode === 39) playerMove(1);
+            else if (event.keyCode === 40) playerDrop();
+            else if (event.keyCode === 38) playerRotate();
+            else if (event.keyCode === 32) playerHardDrop();
+            else if (event.key.toLowerCase() === 'p') togglePause();
+            else if (event.key.toLowerCase() === 'e') activateOverclock();
+            else if (event.key.toLowerCase() === 's') activateStasis();
+            else if (event.key.toLowerCase() === 'h') activateHack();
+            else if (event.key.toLowerCase() === 'b') toggleShop(); // Phím B mở shop
+        });
+
+        // Touch handlers (prevent default to avoid zooming/scrolling)
+        const setupTouch = (id, action) => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('touchstart', (e) => { e.preventDefault(); action(); }, {passive: false});
+                el.addEventListener('mousedown', (e) => { e.preventDefault(); action(); }); // Desktop fallback
+            }
+        };
+
+        setupTouch('btn-left', () => playerMove(-1));
+        setupTouch('btn-right', () => playerMove(1));
+        setupTouch('btn-down', () => playerDrop());
+        setupTouch('btn-rotate', () => playerRotate());
+        setupTouch('btn-drop', () => playerHardDrop());
+
+        // Buttons
+        startBtn.addEventListener('click', () => isPaused ? togglePause() : resetGame());
+        
+        pauseBtnDesk.addEventListener('click', togglePause);
+        restartBtnDesk.addEventListener('click', resetGame);
+        pauseBtnMob.addEventListener('click', togglePause);
+        restartBtnMob.addEventListener('click', resetGame);
+        
+        // Shop Buttons
+        shopBtnDesk.addEventListener('click', toggleShop);
+        shopBtnMob.addEventListener('click', toggleShop);
+        closeShopBtn.addEventListener('click', toggleShop);
+        
+        // Skill Buttons
+        btnUseStasis.addEventListener('click', activateStasis);
+        btnUseHack.addEventListener('click', activateHack);
+        
+        // Nút kỹ năng Overclock
+        btnOverclockDesk.addEventListener('click', activateOverclock);
+        btnOverclockMob.addEventListener('click', activateOverclock);
+
+        function resizeCanvas() {
+            // Calculate best fit for board
+            const containerWidth = window.innerWidth;
+            const containerHeight = window.innerHeight;
+            
+            // Deduct rough space for UI elements and margins
+            const availableHeight = containerHeight - (window.innerWidth < 768 ? 250 : 150); 
+            let newHeight = availableHeight;
+            let newWidth = newHeight / 2; // Tetris is typically 1:2 ratio (10x20)
+
+            // Constraints
+            if (newWidth > 350) {
+                newWidth = 350;
+                newHeight = 700;
+            }
+            if (window.innerWidth < 768 && newWidth > containerWidth * 0.9) {
+                newWidth = containerWidth * 0.9;
+                newHeight = newWidth * 2;
+            }
+
+            // Set internal resolution strictly to logical blocks to prevent blurry lines
+            // Let CSS handle the scaling
+            BLOCK_SIZE = Math.floor(newWidth / COLS);
+            
+            // Adjust canvas internal size to match block size exactly
+            canvas.width = BLOCK_SIZE * COLS;
+            canvas.height = BLOCK_SIZE * ROWS;
+            
+            // Set CSS size to match
+            canvas.style.width = canvas.width + 'px';
+            canvas.style.height = canvas.height + 'px';
+            
+            // Resize wrapper slightly larger for border
+            const wrapper = document.querySelector('.board-wrapper');
+            if(wrapper) {
+                wrapper.style.width = (canvas.width + 8) + 'px';
+            }
+
+            // Redraw everything if not playing so resize is visible
+            if(!requestID) {
+                draw();
+                drawNextPiece();
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Initial setup
+        resizeCanvas();
+        overlay.style.display = 'flex';
+        board = createMatrix(COLS, ROWS);
+        draw();
+
+    </script>
+</body>
+</html>
