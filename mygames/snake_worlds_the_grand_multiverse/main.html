@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake Worlds: Mega AI & Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@300;500;700&display=swap');
+        
+        :root {
+            --neon-blue: #22d3ee;
+            --neon-purple: #a855f7;
+            --neon-green: #4ade80;
+            --neon-red: #f43f5e;
+            
+            /* Dark Mode (Mặc định) */
+            --bg-body: #020617;
+            --text-main: #f1f5f9;
+            --text-muted: rgba(241, 245, 249, 0.6);
+            --glass-bg: rgba(15, 23, 42, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --grid-line: rgba(255, 255, 255, 0.03);
+        }
+
+        body.light-mode {
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: rgba(15, 23, 42, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --btn-bg: rgba(0, 0, 0, 0.05);
+            --grid-line: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow: hidden;
+            touch-action: none;
+            margin: 0;
+            transition: background-color 0.5s, color 0.5s;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            transition: background-color 0.5s, border-color 0.5s;
+        }
+
+        .text-themed { color: var(--text-main); }
+        .text-themed-muted { color: var(--text-muted); }
+        
+        .btn-themed-bg { background: var(--btn-bg); border: 1px solid var(--glass-border); }
+
+        .btn-neon {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: #fff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+        }
+
+        .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(34, 211, 238, 0.4); }
+
+        .chart-container { position: relative; width: 100%; height: 220px; margin: 0 auto; }
+        .shop-timer { animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+
+        #game-canvas { cursor: crosshair; touch-action: none; display: block; }
+        
+        .skill-button {
+            width: 65px; height: 65px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 2px solid var(--neon-blue);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .cooldown-overlay {
+            position: absolute; bottom: 0; width: 100%;
+            background: rgba(34, 211, 238, 0.3); transition: height 0.1s linear;
+            border-radius: 0 0 50% 50%;
+        }
+
+        .active-item-tag {
+            background: var(--btn-bg); padding: 2px 8px; border-radius: 4px; font-size: 10px; border: 1px solid var(--glass-border);
+        }
+
+        #theme-toggle {
+            position: absolute; top: 20px; right: 20px; z-index: 50;
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="relative w-screen h-screen">
+        <canvas id="game-canvas"></canvas>
+
+        <div id="theme-toggle" class="glass-card text-themed" onclick="toggleTheme()">🌙</div>
+
+        <!-- LOBBY SCREEN -->
+        <div id="screen-lobby" class="absolute inset-0 z-20 flex items-center justify-center p-4 bg-black/60 overflow-y-auto backdrop-blur-sm transition-opacity">
+            <div class="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div class="glass-card p-6 rounded-[2rem] space-y-4">
+                    <h2 class="text-lg font-orbitron text-cyan-400 border-b border-gray-500/30 pb-2">CHỦNG TỘC (10)</h2>
+                    <div class="grid grid-cols-5 gap-2" id="species-list"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+
+                    <div id="species-info" class="p-4 btn-themed-bg rounded-2xl">
+                        <h3 class="font-bold text-themed text-lg" id="info-name">-</h3>
+                        <p id="info-desc" class="text-[11px] text-themed-muted leading-tight h-10 overflow-hidden mb-2">-</p>
+                        <div class="text-xs text-cyan-400 font-bold" id="info-skill">Kỹ năng: -</div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-[2rem] flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-orbitron text-purple-400">CHỢ VIỄN CHINH</h2>
+                        <div class="text-[10px] bg-red-500/20 text-red-500 px-2 py-1 rounded shop-timer font-mono" id="shop-timer-text">05:00</div>
+                    </div>
+                    <div class="flex-1 space-y-2 overflow-y-auto pr-2" id="shop-items"></div>
+                    <div class="mt-4 p-4 btn-themed-bg rounded-2xl flex justify-between items-center">
+                        <span class="text-[10px] uppercase text-themed-muted font-bold">Ngân quỹ</span>
+                        <span class="text-lg font-bold text-amber-500" id="lobby-essence">0 ✨</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="glass-card p-8 rounded-[2rem] text-center border-t-4 border-cyan-400">
+                        <h1 class="text-3xl font-orbitron font-bold tracking-tighter mb-1 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">SNAKE WORLDS</h1>
+                        <p class="text-[9px] text-themed-muted uppercase tracking-[0.3em] mb-6">Bản cập nhật Mega AI v5.5</p>
+                        
+                        <!-- Lưới Stats hiển thị 3 cột: Số trận, Thắng, Tỉ lệ -->
+                        <div class="grid grid-cols-3 gap-2 mb-6">
+                            <div class="p-3 btn-themed-bg rounded-2xl">
+                                <p class="text-xl font-bold text-themed" id="stat-matches">0</p>
+                                <p class="text-[9px] uppercase text-themed-muted">Số Trận</p>
+                            </div>
+                            <div class="p-3 btn-themed-bg rounded-2xl">
+                                <p class="text-xl font-bold text-themed" id="stat-wins">0</p>
+                                <p class="text-[9px] uppercase text-themed-muted">Thắng</p>
+                            </div>
+                            <div class="p-3 btn-themed-bg rounded-2xl">
+                                <p class="text-xl font-bold text-themed" id="stat-rate">0%</p>
+                                <p class="text-[9px] uppercase text-themed-muted">Tỉ lệ</p>
+                            </div>
+                        </div>
+
+                        <!-- Đã sửa nút thành chỉ có chữ XUẤT QUÂN -->
+                        <button onclick="startGame()" class="btn-neon w-full py-5 rounded-2xl font-orbitron text-lg font-bold shadow-xl">XUẤT QUÂN</button>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-[2rem] text-[11px] space-y-2 text-themed font-medium">
+                        <div class="flex justify-between"><span>Tăng tốc:</span><span class="text-cyan-500">Chuột / Space / HUD</span></div>
+                        <div class="flex justify-between"><span>Kỹ năng:</span><span class="text-purple-500">Phím E / HUD</span></div>
+                        <div class="flex justify-between border-t border-gray-500/30 pt-2 mt-2"><span class="text-red-400">Lưu ý:</span><span class="text-themed-muted text-right max-w-[150px]">Rắn AI giờ đã biết né nhau và săn mồi!</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-hud" class="absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity flex flex-col justify-between p-6">
+            <div class="flex justify-between items-start">
+                <div class="glass-card p-4 rounded-2xl flex gap-6 shadow-xl">
+                    <div>
+                        <p class="text-[9px] text-themed-muted uppercase font-bold">Khối lượng</p>
+                        <p id="hud-essence" class="text-2xl font-orbitron font-bold text-themed">0</p>
+                    </div>
+                    <div class="border-l border-gray-500/30 pl-6">
+                        <p class="text-[9px] text-themed-muted uppercase font-bold">Hạng</p>
+                        <p id="hud-rank" class="text-2xl font-orbitron font-bold text-amber-500">#--</p>
+                    </div>
+                    <div class="border-l border-gray-500/30 pl-6">
+                        <p class="text-[9px] text-themed-muted uppercase font-bold">Sinh tồn</p>
+                        <p id="hud-alive" class="text-2xl font-orbitron font-bold text-green-500">0</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <div id="active-items-hud" class="flex gap-1 text-themed"></div>
+                    <div class="w-28 h-28 glass-card rounded-xl overflow-hidden relative border-2 border-gray-500/30 shadow-xl">
+                        <canvas id="minimap"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-end pb-2">
+                <div class="pointer-events-auto">
+                    <div class="skill-button" id="btn-skill">
+                        <span id="skill-emoji">🔥</span>
+                        <div id="cd-skill" class="cooldown-overlay h-0"></div>
+                    </div>
+                </div>
+                <div class="pointer-events-auto">
+                    <div class="w-20 h-20 rounded-full glass-card flex items-center justify-center font-bold text-[10px] text-themed border-2 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] active:scale-90 transition-transform select-none" id="btn-boost">
+                        BOOST
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas, ctx, miniCanvas, miniCtx, radarChart;
+
+        let isLightMode = localStorage.getItem('snake_theme') === 'light';
+        const themeBtn = document.getElementById('theme-toggle');
+        
+        function applyTheme() {
+            if(isLightMode) {
+                document.body.classList.add('light-mode');
+                themeBtn.innerText = '☀️';
+            } else {
+                document.body.classList.remove('light-mode');
+                themeBtn.innerText = '🌙';
+            }
+            if(radarChart) updateRadarTheme();
+        }
+        
+        function toggleTheme() {
+            isLightMode = !isLightMode;
+            localStorage.setItem('snake_theme', isLightMode ? 'light' : 'dark');
+            applyTheme();
+        }
+
+        applyTheme();
+
+        const WORLD_SIZE = 8000; 
+        const FOOD_AMOUNT = 3500;
+
+        const SPECIES = {
+            titanium: { name: 'Titanium', icon: '🛡️', color: '#94a3b8', stats: [2, 5, 2, 5], desc: 'Vảy kim loại nặng. Khó bị tiêu diệt.', skill: 'Khiên Bất Tử', cd: 12000 },
+            magma: { name: 'Magma', icon: '🔥', color: '#f43f5e', stats: [4, 3, 3, 4], desc: 'Nhanh nhẹn, lửa cuồng nộ.', skill: 'Hỏa Ngục', cd: 7000 },
+            glitch: { name: 'Glitch', icon: '👾', color: '#a855f7', stats: [5, 2, 4, 2], desc: 'Lỗi thực thể, dịch chuyển xuyên không.', skill: 'Dịch Chuyển', cd: 5000 },
+            singularity: { name: 'Singularity', icon: '🕳️', color: '#0ea5e9', stats: [3, 4, 5, 4], desc: 'Lực hút lớn, ăn mồi từ xa.', skill: 'Lỗ Đen', cd: 10000 },
+            nebula: { name: 'Nebula', icon: '🌌', color: '#2dd4bf', stats: [4, 2, 5, 2], desc: 'Phản ứng nhanh với thay đổi.', skill: 'Tinh Vân', cd: 8000 },
+            glass: { name: 'Glass Viper', icon: '💎', color: '#38bdf8', stats: [5, 1, 2, 1], desc: 'Tốc độ cực cao, giáp mỏng.', skill: 'Tàng Hình', cd: 15000 },
+            chrono: { name: 'Chrono', icon: '⏳', color: '#fbbf24', stats: [3, 3, 4, 3], desc: 'Thao túng thời gian kẻ địch.', skill: 'Thời Không', cd: 18000 },
+            cyber: { name: 'Cyber-Core', icon: '🤖', color: '#818cf8', stats: [3, 4, 3, 5], desc: 'Công nghệ Nano vững chắc.', skill: 'Drone', cd: 9000 },
+            solar: { name: 'Solar', icon: '☀️', color: '#f59e0b', stats: [4, 4, 2, 4], desc: 'Năng lượng dồi dào, cân bằng.', skill: 'Lóa Sáng', cd: 11000 },
+            acid: { name: 'Acid', icon: '🧪', color: '#84cc16', stats: [3, 3, 3, 4], desc: 'Ăn mòn mọi chướng ngại vật.', skill: 'Mưa Acid', cd: 7000 }
+        };
+
+        const ITEM_POOL = [
+            { id: 'radar', name: 'Radar Lượng Tử', cost: 300, icon: '📡', desc: 'Hiện đối thủ trên minimap' },
+            { id: 'magnet', name: 'Siêu Nam Châm', cost: 250, icon: '🧲', desc: 'X3 bán kính hút mồi' },
+            { id: 'shield', name: 'Giáp Phản Đòn', cost: 450, icon: '🛡️', desc: 'Chặn va chạm 1 lần' },
+            { id: 'speed', name: 'Nhiên Liệu X', cost: 200, icon: '🧪', desc: 'Tăng tốc cơ bản 20%' }
+        ];
+
+        let state = JSON.parse(localStorage.getItem('snake_v5_data')) || { essence: 1000, wins: 0, matches: 0 };
+        let currentSpecies = 'titanium';
+        let shopTimeLeft = 300;
+        let isPlaying = false;
+        let activeItems = [];
+        
+        let player = null, bots = [], foods = [], particles = [];
+        let camera = { x: 0, y: 0, zoom: 0.85, targetZoom: 0.85 };
+        let pointer = { x: 0, y: 0, active: false };
+        let keys = {};
+        
+        window.onload = function() {
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            miniCanvas = document.getElementById('minimap');
+            miniCtx = miniCanvas.getContext('2d');
+            
+            window.addEventListener('resize', resize);
+            resize();
+
+            window.addEventListener('keydown', e => {
+                keys[e.code] = true;
+                if(e.code === 'KeyE') player && player.useSkill();
+            });
+            window.addEventListener('keyup', e => keys[e.code] = false);
+
+            canvas.addEventListener('pointermove', e => {
+                pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true;
+            });
+            canvas.addEventListener('pointerdown', () => player && (player.isBoosting = true));
+            canvas.addEventListener('pointerup', () => player && (player.isBoosting = false));
+
+            document.getElementById('btn-boost').onpointerdown = (e) => { e.preventDefault(); if(player) player.isBoosting = true; };
+            document.getElementById('btn-boost').onpointerup = (e) => { e.preventDefault(); if(player) player.isBoosting = false; };
+            document.getElementById('btn-skill').onpointerdown = (e) => { e.preventDefault(); if(player) player.useSkill(); };
+
+            initRadarChart();
+            renderSpeciesList();
+            refreshShop();
+            updateStatsUI();
+            
+            setInterval(() => {
+                shopTimeLeft--;
+                if(shopTimeLeft <= 0) refreshShop();
+                updateShopTimerUI();
+            }, 1000);
+
+            // Bắt đầu vòng lặp game ngay khi load xong
+            requestAnimationFrame(gameLoop);
+        };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            miniCanvas.width = 112; 
+            miniCanvas.height = 112;
+        }
+
+        function initRadarChart() {
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            let gridColor = isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+            radarChart = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Tốc độ', 'Giáp', 'Lực hút', 'Khối lượng'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: 'rgba(34, 211, 238, 0.2)',
+                        borderColor: '#22d3ee',
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0, max: 5,
+                            ticks: { display: false },
+                            grid: { color: gridColor },
+                            angleLines: { color: gridColor },
+                            pointLabels: { color: isLightMode ? '#0f172a' : '#f1f5f9', font: {family: 'Quicksand', size: 10} }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        function updateRadarTheme() {
+            let gridColor = isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+            let textColor = isLightMode ? '#0f172a' : '#f1f5f9';
+            radarChart.options.scales.r.grid.color = gridColor;
+            radarChart.options.scales.r.angleLines.color = gridColor;
+            radarChart.options.scales.r.pointLabels.color = textColor;
+            radarChart.update();
+        }
+
+        function updateRadarData(statsArray) {
+            if (!radarChart) return;
+            radarChart.data.datasets[0].data = [...statsArray];
+            radarChart.update();
+        }
+
+        function renderSpeciesList() {
+            const list = document.getElementById('species-list');
+            list.innerHTML = '';
+            Object.keys(SPECIES).forEach(key => {
+                const s = SPECIES[key];
+                const btn = document.createElement('div');
+                btn.className = `w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer transition-all border-2 ${key === currentSpecies ? 'border-cyan-500 bg-cyan-500/20' : 'border-gray-500/30 opacity-50'}`;
+                btn.innerHTML = s.icon;
+                btn.onclick = () => selectSpecies(key);
+                list.appendChild(btn);
+            });
+            selectSpecies(currentSpecies);
+        }
+
+        function selectSpecies(key) {
+            currentSpecies = key;
+            const s = SPECIES[key];
+            document.getElementById('info-name').innerText = s.name;
+            document.getElementById('info-desc').innerText = s.desc;
+            document.getElementById('info-skill').innerText = `Kỹ năng: ${s.skill}`;
+            document.getElementById('skill-emoji').innerText = s.icon;
+            
+            updateRadarData(s.stats);
+            
+            document.querySelectorAll('#species-list div').forEach((el, i) => {
+                const id = Object.keys(SPECIES)[i];
+                el.className = `w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer transition-all border-2 ${id === key ? 'border-cyan-500 bg-cyan-500/20' : 'border-gray-500/30 opacity-50 text-themed'}`;
+            });
+        }
+
+        function refreshShop() {
+            shopTimeLeft = 300;
+            const items = [...ITEM_POOL].sort(() => 0.5 - Math.random());
+            const container = document.getElementById('shop-items');
+            container.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-3 btn-themed-bg rounded-xl transition-all cursor-pointer group text-themed";
+                div.innerHTML = `
+                    <div class="flex gap-3 items-center">
+                        <div class="text-xl">${item.icon}</div>
+                        <div>
+                            <p class="text-[11px] font-bold font-orbitron text-themed">${item.name}</p>
+                            <p class="text-[8px] text-themed-muted">${item.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('${item.id}', ${item.cost})" class="px-3 py-1 bg-cyan-600 text-white rounded-lg text-[9px] font-bold hover:bg-cyan-500 shadow-md border-none">${item.cost}</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateShopTimerUI() {
+            const m = Math.floor(shopTimeLeft / 60);
+            const s = shopTimeLeft % 60;
+            document.getElementById('shop-timer-text').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+
+        function buyItem(id, cost) {
+            if (state.essence >= cost) {
+                state.essence -= cost;
+                activeItems.push(id);
+                updateStatsUI();
+                save();
+            }
+        }
+
+        function updateStatsUI() {
+            document.getElementById('lobby-essence').innerText = state.essence + ' ✨';
+            document.getElementById('stat-matches').innerText = state.matches;
+            document.getElementById('stat-wins').innerText = state.wins;
+            const rate = state.matches > 0 ? Math.round((state.wins / state.matches) * 100) : 0;
+            document.getElementById('stat-rate').innerText = rate + '%';
+        }
+
+        function save() { localStorage.setItem('snake_v5_data', JSON.stringify(state)); }
+
+        class Snake {
+            constructor(x, y, type, isPlayer) {
+                this.x = x; this.y = y; 
+                this.angle = Math.random() * Math.PI * 2;
+                this.type = type; 
+                this.isPlayer = isPlayer;
+                this.config = SPECIES[type];
+                this.segments = Array(isPlayer && activeItems.includes('growth') ? 50 : 25).fill({x, y});
+                this.length = this.segments.length;
+                this.essence = 0;
+                this.isBoosting = false;
+                this.lastSkillTime = 0;
+                this.shield = activeItems.includes('shield') && isPlayer;
+                this.speedMult = isPlayer && activeItems.includes('speed') ? 1.25 : 1.0;
+                this.invisible = false;
+                
+                this.aiWanderAngle = this.angle;
+                this.turnSpeed = isPlayer ? 0.15 : (0.05 + Math.random() * 0.05); 
+            }
+
+            update(allSnakes) {
+                if (this.isPlayer) {
+                    if (keys['Space']) this.isBoosting = true;
+                    if (pointer.active) {
+                        const dx = pointer.x - canvas.width/2;
+                        const dy = pointer.y - canvas.height/2;
+                        const target = Math.atan2(dy, dx);
+                        let diff = target - this.angle;
+                        while(diff < -Math.PI) diff += Math.PI*2;
+                        while(diff > Math.PI) diff -= Math.PI*2;
+                        this.angle += diff * this.turnSpeed;
+                    }
+                } 
+                else {
+                    this.updateAI(allSnakes);
+                }
+
+                const moveSpeed = (this.isBoosting ? 8.5 : 4.5) * (this.config.stats[0] / 3) * this.speedMult;
+                this.x += Math.cos(this.angle) * moveSpeed;
+                this.y += Math.sin(this.angle) * moveSpeed;
+
+                this.x = Math.max(-WORLD_SIZE/2, Math.min(WORLD_SIZE/2, this.x));
+                this.y = Math.max(-WORLD_SIZE/2, Math.min(WORLD_SIZE/2, this.y));
+
+                this.segments.unshift({x: this.x, y: this.y});
+                if (this.segments.length > this.length) this.segments.pop();
+
+                this.handleEffects();
+                this.handleEating();
+            }
+
+            updateAI(allSnakes) {
+                let targetAngle = this.angle;
+                let dangerDetected = false;
+                let closestFood = null;
+                let minFoodDist = 500; 
+
+                for (let i = 0; i < 50; i++) { 
+                    if(foods.length === 0) break;
+                    let f = foods[Math.floor(Math.random() * foods.length)];
+                    let d = Math.hypot(this.x - f.x, this.y - f.y);
+                    if (d < minFoodDist) { 
+                        minFoodDist = d; 
+                        closestFood = f; 
+                    }
+                }
+
+                for (let other of allSnakes) {
+                    if (other === this) continue;
+                    
+                    let dToOtherHead = Math.hypot(this.x - other.x, this.y - other.y);
+                    if (dToOtherHead > 500) continue; 
+
+                    for (let k = 0; k < other.segments.length; k += 4) {
+                        let seg = other.segments[k];
+                        let d = Math.hypot(this.x - seg.x, this.y - seg.y);
+                        
+                        if (d < 120) { 
+                            let angleToDanger = Math.atan2(seg.y - this.y, seg.x - this.x);
+                            let diff = angleToDanger - this.angle;
+                            while(diff < -Math.PI) diff += Math.PI*2;
+                            while(diff > Math.PI) diff -= Math.PI*2;
+                            
+                            if (Math.abs(diff) < Math.PI / 2) {
+                                dangerDetected = true;
+                                targetAngle = this.angle - Math.sign(diff) * Math.PI / 1.5; 
+                                break;
+                            }
+                        }
+                    }
+                    if (dangerDetected) break;
+                }
+
+                let margin = 400;
+                if (this.x < -WORLD_SIZE/2 + margin || this.x > WORLD_SIZE/2 - margin || 
+                    this.y < -WORLD_SIZE/2 + margin || this.y > WORLD_SIZE/2 - margin) {
+                    dangerDetected = true;
+                    targetAngle = Math.atan2(-this.y, -this.x); 
+                }
+
+                if (dangerDetected) {
+                    this.isBoosting = true; 
+                } else if (closestFood) {
+                    targetAngle = Math.atan2(closestFood.y - this.y, closestFood.x - this.x);
+                    this.isBoosting = (minFoodDist < 150); 
+                } else {
+                    if (Math.random() < 0.05) this.aiWanderAngle += (Math.random() - 0.5);
+                    targetAngle = this.aiWanderAngle;
+                    this.isBoosting = false;
+                }
+
+                let diff = targetAngle - this.angle;
+                while(diff < -Math.PI) diff += Math.PI*2;
+                while(diff > Math.PI) diff -= Math.PI*2;
+                this.angle += diff * this.turnSpeed;
+            }
+
+            handleEffects() {
+                if (this.isBoosting) {
+                    if (Math.random() < 0.4) {
+                        const randIndex = Math.floor(this.segments.length / 2 + Math.random() * (this.segments.length / 2));
+                        const seg = this.segments[randIndex];
+                        if (seg) {
+                            particles.push({
+                                x: seg.x + (Math.random() - 0.5) * 15,
+                                y: seg.y + (Math.random() - 0.5) * 15,
+                                r: Math.random() * 4 + 2,
+                                color: this.config.color,
+                                life: 1, vx: -Math.cos(this.angle) * 2, vy: -Math.sin(this.angle) * 2, decay: 0.04
+                            });
+                        }
+                    }
+                    if (this.type === 'magma') {
+                        particles.push({
+                            x: this.x + (Math.random()-0.5)*10, y: this.y + (Math.random()-0.5)*10, 
+                            r: 8 + Math.random() * 4, color: '#f43f5e', 
+                            life: 1.2, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, decay: 0.03
+                        });
+                    }
+                }
+            }
+
+            handleEating() {
+                let range = 60 + (this.config.stats[2] * 15);
+                if (this.isPlayer && activeItems.includes('magnet')) range *= 2.5;
+
+                for (let i = foods.length - 1; i >= 0; i--) {
+                    let f = foods[i];
+                    if (Math.abs(f.x - this.x) > range || Math.abs(f.y - this.y) > range) continue;
+
+                    const d = Math.hypot(f.x - this.x, f.y - this.y);
+                    if (d < range) {
+                        f.x += (this.x - f.x) * 0.2;
+                        f.y += (this.y - f.y) * 0.2;
+                    }
+                    if (d < 25) {
+                        this.length += 0.5;
+                        this.essence += 2;
+                        foods.splice(i, 1);
+                        if (foods.length < FOOD_AMOUNT * 0.7) spawnFood();
+                    }
+                }
+            }
+
+            useSkill() {
+                const now = Date.now();
+                if (now - this.lastSkillTime < this.config.cd) return;
+                this.lastSkillTime = now;
+
+                switch(this.type) {
+                    case 'glitch':
+                        this.x += Math.cos(this.angle) * 450;
+                        this.y += Math.sin(this.angle) * 450;
+                        break;
+                    case 'titanium':
+                        this.shield = true;
+                        setTimeout(() => this.shield = false, 4000);
+                        break;
+                    case 'chrono':
+                        bots.forEach(b => {
+                            if (Math.hypot(b.x-this.x, b.y-this.y) < 1000) {
+                                b.speedMult = 0.2;
+                                setTimeout(() => b.speedMult = 1, 3000);
+                            }
+                        });
+                        break;
+                    case 'glass':
+                        this.invisible = true;
+                        setTimeout(() => this.invisible = false, 5000);
+                        break;
+                }
+            }
+
+            draw() {
+                if (this.invisible && !this.isPlayer) return;
+                
+                let dToCamera = Math.hypot(this.x - camera.x, this.y - camera.y);
+                let cullDistance = (canvas.width / camera.zoom) * 0.8; 
+                if (dToCamera > cullDistance + (this.length * 5)) return; 
+
+                ctx.save();
+                ctx.globalAlpha = this.invisible ? 0.2 : 1;
+                ctx.strokeStyle = this.config.color;
+                
+                if (this.isBoosting) {
+                    ctx.lineWidth = 22 * camera.zoom;
+                    ctx.shadowBlur = 20; 
+                } else {
+                    ctx.lineWidth = 26 * camera.zoom; 
+                    ctx.shadowBlur = 10;
+                }
+                
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = this.config.color;
+
+                ctx.beginPath();
+                this.segments.forEach((s, i) => {
+                    const sx = (s.x - camera.x) * camera.zoom + canvas.width/2;
+                    const sy = (s.y - camera.y) * camera.zoom + canvas.height/2;
+                    if (i === 0) ctx.moveTo(sx, sy);
+                    else ctx.lineTo(sx, sy);
+                });
+                ctx.stroke();
+
+                if (this.shield) {
+                    ctx.beginPath();
+                    ctx.arc((this.x - camera.x)*camera.zoom + canvas.width/2, (this.y - camera.y)*camera.zoom + canvas.height/2, 50*camera.zoom, 0, Math.PI*2);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 15;
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        function spawnFood() {
+            foods.push({
+                x: (Math.random()-0.5)*WORLD_SIZE,
+                y: (Math.random()-0.5)*WORLD_SIZE,
+                color: `hsl(${Math.random()*360}, 80%, ${isLightMode ? '40%' : '60%'})`,
+                r: Math.random()*3 + 2
+            });
+        }
+
+        function startGame() {
+            keys = {};
+            pointer = { x: 0, y: 0, active: false };
+            camera = { x: 0, y: 0, zoom: 0.85, targetZoom: 0.85 };
+            particles = [];
+            bots = [];
+            foods = [];
+
+            isPlaying = true;
+            document.getElementById('screen-lobby').classList.add('hidden');
+            document.getElementById('screen-hud').style.opacity = 1;
+            
+            // Cập nhật và lưu trận đấu mới
+            state.matches++;
+            updateStatsUI();
+            save();
+            
+            const tags = document.getElementById('active-items-hud');
+            tags.innerHTML = '';
+            activeItems.forEach(id => {
+                const item = ITEM_POOL.find(it => it.id === id);
+                tags.innerHTML += `<span class="active-item-tag">${item.icon}</span>`;
+            });
+
+            player = new Snake(0, 0, currentSpecies, true);
+            
+            // Khởi tạo Random từ 100 đến 200 Bots
+            const currentTotalBots = Math.floor(Math.random() * 101) + 100;
+            const types = Object.keys(SPECIES);
+            for(let i = 0; i < currentTotalBots; i++) {
+                bots.push(new Snake((Math.random()-0.5)*WORLD_SIZE, (Math.random()-0.5)*WORLD_SIZE, types[Math.floor(Math.random()*types.length)], false));
+            }
+            
+            for(let i = 0; i < FOOD_AMOUNT; i++) spawnFood();
+        }
+
+        function gameLoop() {
+            // CỰC KỲ QUAN TRỌNG: Gọi đệ quy vòng lặp ngay ở đầu hàm. 
+            // Điều này đảm bảo khi player chết và dùng lệnh `return` ngắt hàm sớm,
+            // vòng lặp của trình duyệt không bị vỡ/đóng băng ở lần chơi tiếp theo.
+            requestAnimationFrame(gameLoop);
+
+            ctx.fillStyle = isLightMode ? '#f8fafc' : '#020617';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (isPlaying && player) {
+                camera.x += (player.x - camera.x) * 0.1;
+                camera.y += (player.y - camera.y) * 0.1;
+                camera.targetZoom = player.isBoosting ? 0.72 : 0.85;
+                camera.zoom += (camera.targetZoom - camera.zoom) * 0.05;
+
+                drawGrid();
+
+                let allSnakes = [player, ...bots];
+                
+                player.update(allSnakes);
+                bots.forEach(b => b.update(allSnakes));
+
+                let deadBots = [];
+                let playerDied = false;
+
+                for (let i = 0; i < allSnakes.length; i++) {
+                    let snake = allSnakes[i];
+                    let isDead = false;
+
+                    for (let j = 0; j < allSnakes.length; j++) {
+                        if (i === j) continue;
+                        let otherSnake = allSnakes[j];
+                        
+                        let headDist = Math.hypot(snake.x - otherSnake.x, snake.y - otherSnake.y);
+                        if (headDist > 600) continue; 
+                        
+                        for (let k = 0; k < otherSnake.segments.length; k += 2) {
+                            let seg = otherSnake.segments[k];
+                            let d = Math.hypot(snake.x - seg.x, snake.y - seg.y);
+                            if (d < 22) { 
+                                if (snake === player && player.shield) {
+                                    player.shield = false; 
+                                    isDead = false;
+                                    break; 
+                                } else {
+                                    isDead = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (isDead) break;
+                    }
+
+                    if (isDead) {
+                        snake.segments.forEach((seg, idx) => {
+                            if (idx % 2 === 0) { 
+                                foods.push({
+                                    x: seg.x + (Math.random()-0.5)*20,
+                                    y: seg.y + (Math.random()-0.5)*20,
+                                    color: snake.config.color,
+                                    r: Math.random() * 4 + 4 
+                                });
+                            }
+                        });
+
+                        if (snake === player) playerDied = true;
+                        else deadBots.push(snake);
+                    }
+                }
+
+                deadBots.forEach(b => {
+                    const idx = bots.indexOf(b);
+                    if (idx > -1) bots.splice(idx, 1);
+                });
+
+                if (playerDied) {
+                    endGame(false);
+                    return; // Vòng lặp vẫn tiếp tục do requestAnimationFrame ở trên
+                }
+                if (bots.length === 0) {
+                    endGame(true);
+                    return;
+                }
+
+                ctx.save();
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    let p = particles[i];
+                    p.life -= p.decay || 0.02;
+                    if (p.life <= 0) { particles.splice(i, 1); continue; }
+                    if (p.vx) p.x += p.vx;
+                    if (p.vy) p.y += p.vy;
+
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = p.color;
+                    
+                    ctx.beginPath();
+                    ctx.arc((p.x - camera.x) * camera.zoom + canvas.width/2, (p.y - camera.y) * camera.zoom + canvas.height/2, p.r * camera.zoom, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                foods.forEach(f => {
+                    const sx = (f.x - camera.x)*camera.zoom + canvas.width/2;
+                    const sy = (f.y - camera.y)*camera.zoom + canvas.height/2;
+                    if (sx < -20 || sx > canvas.width+20 || sy < -20 || sy > canvas.height+20) return;
+                    ctx.fillStyle = f.color;
+                    ctx.beginPath(); ctx.arc(sx, sy, f.r*camera.zoom, 0, Math.PI*2); ctx.fill();
+                });
+
+                bots.forEach(b => b.draw());
+                player.draw();
+
+                updateHUD();
+                drawMinimap();
+            }
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.03)';
+            ctx.lineWidth = 1;
+            const step = 400 * camera.zoom;
+            const startX = Math.floor((-WORLD_SIZE/2 - camera.x)*camera.zoom + canvas.width/2);
+            const startY = Math.floor((-WORLD_SIZE/2 - camera.y)*camera.zoom + canvas.height/2);
+            const endX = Math.floor((WORLD_SIZE/2 - camera.x)*camera.zoom + canvas.width/2);
+            const endY = Math.floor((WORLD_SIZE/2 - camera.y)*camera.zoom + canvas.height/2);
+
+            for(let x = -WORLD_SIZE/2; x <= WORLD_SIZE/2; x += 400) {
+                const sx = (x - camera.x)*camera.zoom + canvas.width/2;
+                ctx.beginPath(); ctx.moveTo(sx, startY); ctx.lineTo(sx, endY); ctx.stroke();
+            }
+            for(let y = -WORLD_SIZE/2; y <= WORLD_SIZE/2; y += 400) {
+                const sy = (y - camera.y)*camera.zoom + canvas.height/2;
+                ctx.beginPath(); ctx.moveTo(startX, sy); ctx.lineTo(endX, sy); ctx.stroke();
+            }
+            
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; 
+            ctx.lineWidth = 5 * camera.zoom;
+            ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-essence').innerText = Math.floor(player.essence);
+            const rank = bots.filter(b => b.length > player.length).length + 1;
+            document.getElementById('hud-rank').innerText = `#${rank}`;
+            document.getElementById('hud-alive').innerText = `${bots.length + 1}`;
+
+            const cd = player.config.cd;
+            const elapsed = Date.now() - player.lastSkillTime;
+            const pct = Math.max(0, 100 - (elapsed / cd) * 100);
+            document.getElementById('cd-skill').style.height = pct + '%';
+        }
+
+        function drawMinimap() {
+            miniCtx.fillStyle = isLightMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)';
+            miniCtx.fillRect(0, 0, miniCanvas.width, miniCanvas.height);
+            
+            const scale = (v) => (v / WORLD_SIZE + 0.5) * miniCanvas.width;
+            
+            if (activeItems.includes('radar')) {
+                miniCtx.fillStyle = '#f43f5e';
+                miniCtx.globalAlpha = 0.5;
+                bots.forEach(b => {
+                    miniCtx.beginPath(); miniCtx.arc(scale(b.x), scale(b.y), 1.5, 0, Math.PI*2); miniCtx.fill();
+                });
+                miniCtx.globalAlpha = 1;
+            }
+
+            miniCtx.fillStyle = '#22d3ee';
+            miniCtx.beginPath(); miniCtx.arc(scale(player.x), scale(player.y), 3.5, 0, Math.PI*2); miniCtx.fill();
+        }
+
+        function endGame(isWin) {
+            isPlaying = false;
+            
+            if(isWin) state.wins++;
+            state.essence += Math.floor(player.essence);
+            
+            activeItems = []; 
+            save();
+            
+            document.getElementById('screen-hud').style.opacity = 0;
+            document.getElementById('screen-lobby').classList.remove('hidden');
+            
+            updateStatsUI();
+        }
+    </script>
+</body>
+</html>
