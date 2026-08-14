@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGames - Nền Tảng Trò Chơi Trực Tuyến</title>
+    <link rel="icon" href="favicon.ico">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        myPrimary: '#8B5CF6',
+                        mySecondary: '#EC4899',
+                        myAccent: '#06B6D4',
+                        myDark: '#0B0F19',
+                        myCard: '#151C2C',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-subtle': 'bounceSubtle 2s infinite',
+                        'glow-purple': 'glowPurple 3s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        bounceSubtle: {
+                            '0%, 100%': { transform: 'translateY(-4%)' },
+                            '50%': { transform: 'translateY(0)' },
+                        },
+                        glowPurple: {
+                            '0%': { boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)' },
+                            '100%': { boxShadow: '0 0 35px rgba(236, 72, 153, 0.7)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        :root {
+            --bg-body: #F8FAFC;
+            --text-main: #0F172A;
+            --bg-card: #FFFFFF;
+            --border-card: #E2E8F0;
+            --bg-header: rgba(255, 255, 255, 0.88);
+            --grid-color: rgba(0, 0, 0, 0.05);
+            --text-muted: #64748B;
+            --bg-input: #F1F5F9;
+            --border-input: #CBD5E1;
+            --text-input: #334155;
+            --bg-card-bottom: #F8FAFC;
+        }
+
+        .dark {
+            --bg-body: #070A12;
+            --text-main: #F1F5F9;
+            --bg-card: #151C2C;
+            --border-card: rgba(255, 255, 255, 0.08);
+            --bg-header: rgba(11, 15, 25, 0.88);
+            --grid-color: rgba(255, 255, 255, 0.02);
+            --text-muted: #94A3B8;
+            --bg-input: rgba(15, 23, 42, 0.9);
+            --border-input: rgba(51, 65, 85, 0.8);
+            --text-input: #F1F5F9;
+            --bg-card-bottom: #151924;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Glassmorphic elements */
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-card);
+        }
+
+        .glass-header {
+            background: var(--bg-header);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-card);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8B5CF6;
+        }
+
+        /* Background grid effect */
+        .bg-grid {
+            background-size: 36px 36px;
+            background-image: 
+                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+            transition: background-image 0.3s;
+        }
+
+        .mygame-gradient-text {
+            background: linear-gradient(135deg, #38BDF8 0%, #A855F7 50%, #EC4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Dynamic classes for inputs and cards */
+        .dynamic-input {
+            background-color: var(--bg-input);
+            color: var(--text-input);
+            border-color: var(--border-input);
+        }
+        .dynamic-card-bottom {
+            background-color: var(--bg-card-bottom);
+        }
+        .dynamic-text-muted {
+            color: var(--text-muted);
+        }
+        .dynamic-border {
+            border-color: var(--border-card);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-grid">
+
+    <!-- HEADER & NAVIGATION BAR -->
+    <header class="sticky top-0 z-40 glass-header shadow-md dark:shadow-2xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- MYGAMES LOGO -->
+                <div class="flex items-center space-x-3 cursor-pointer group" onclick="switchTab('home')">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-cyan-400 p-0.5 flex items-center justify-center shadow-lg shadow-violet-600/30 group-hover:scale-105 transition duration-300">
+                        <div class="w-full h-full bg-white dark:bg-slate-950 rounded-[14px] flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-gamepad text-2xl text-transparent bg-clip-text bg-gradient-to-tr from-cyan-400 to-fuchsia-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-1.5">
+                            <h1 class="text-2xl font-black tracking-wider mygame-gradient-text">MYGAMES</h1>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-violet-100 dark:bg-violet-600/30 border border-violet-200 dark:border-violet-500/40 text-violet-700 dark:text-violet-300">HUB</span>
+                        </div>
+                        <p class="text-[11px] dynamic-text-muted font-medium tracking-wide">Platform Trò Chơi Trực Tuyến</p>
+                    </div>
+                </div>
+
+                <!-- SEARCH BAR IN HEADER -->
+                <div class="hidden md:flex flex-1 max-w-md mx-6 relative">
+                    <div class="relative w-full">
+                        <input type="text" 
+                               id="globalSearchInput" 
+                               onkeyup="handleSearch()"
+                               placeholder="Tìm kiếm trò chơi trong MyGames..." 
+                               class="w-full dynamic-input text-sm rounded-2xl pl-11 pr-10 py-3 border focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 transition duration-200 placeholder-slate-400 dark:placeholder-slate-500">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 dynamic-text-muted"></i>
+                        <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-3 dynamic-text-muted hover:text-violet-500 p-1">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NAVIGATION BUTTONS -->
+                <nav class="flex items-center space-x-1 sm:space-x-2">
+                    <button id="nav-home" 
+                            onclick="switchTab('home')" 
+                            class="nav-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center space-x-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/30">
+                        <i class="fa-solid fa-house"></i>
+                        <span class="hidden lg:inline">Trang chủ</span>
+                    </button>
+
+                    <button id="nav-free" 
+                            onclick="switchTab('free')" 
+                            class="nav-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center space-x-2 dynamic-text-muted hover:text-violet-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80">
+                        <i class="fa-solid fa-gamepad text-emerald-500 dark:text-emerald-400"></i>
+                        <span class="hidden lg:inline">Trò chơi không mất tiền</span>
+                    </button>
+
+                    <button id="nav-paid" 
+                            onclick="switchTab('paid')" 
+                            class="nav-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center space-x-2 dynamic-text-muted hover:text-violet-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80">
+                        <i class="fa-solid fa-gem text-amber-500 dark:text-amber-400"></i>
+                        <span class="hidden lg:inline">Trò chơi mất tiền</span>
+                    </button>
+                    
+                    <!-- THEME TOGGLE BUTTON -->
+                    <button onclick="toggleTheme()" class="ml-2 p-2.5 rounded-xl dynamic-text-muted hover:text-violet-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all duration-300">
+                        <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- MOBILE SEARCH BAR -->
+            <div class="md:hidden pb-4">
+                <div class="relative w-full">
+                    <input type="text" 
+                           id="mobileSearchInput" 
+                           onkeyup="handleSearchMobile()"
+                           placeholder="Tìm kiếm trò chơi trong MyGames..." 
+                           class="w-full dynamic-input text-sm rounded-xl pl-10 pr-10 py-2.5 border focus:outline-none focus:border-violet-500 placeholder-slate-400 dark:placeholder-slate-500">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 dynamic-text-muted text-sm"></i>
+                    <button id="clearSearchBtnMobile" onclick="clearSearchMobile()" class="hidden absolute right-3 top-3 dynamic-text-muted hover:text-violet-500 p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ==================== TAB 1: TRANG CHỦ ==================== -->
+        <section id="tab-home-content" class="space-y-10 transition-all duration-300">
+            <!-- MYGAMES CATALOG GRID -->
+            <div>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-3 h-8 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-full"></div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white transition-colors">Kho Trò Chơi</h3>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span id="game-count-home" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 dynamic-text-muted dynamic-border border">
+                            Đang tải...
+                        </span>
+                    </div>
+                </div>
+                <!-- GAME CARDS GRID -->
+                <div id="grid-home-games" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dynamic cards injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: TRÒ CHƠI KHÔNG MẤT TIỀN ==================== -->
+        <section id="tab-free-content" class="hidden space-y-8 transition-all duration-300">
+            <div class="glass-panel p-8 rounded-3xl border border-emerald-500/20 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-950">
+                <div class="max-w-3xl">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase mb-3">
+                        <i class="fa-solid fa-gift"></i>
+                        <span>Kho game miễn phí 100%</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-2 transition-colors">Trò Chơi Không Mất Tiền</h2>
+                    <p class="dynamic-text-muted text-sm sm:text-base">
+                        Khám phá tất cả các tựa game miễn phí trên hệ thống MyGames.
+                    </p>
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center transition-colors">
+                        <i class="fa-solid fa-circle-check text-emerald-500 dark:text-emerald-400 mr-2.5"></i> Danh sách trò chơi
+                    </h3>
+                </div>
+                <div id="grid-free-games" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dynamic free cards injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: TRÒ CHƠI MẤT TIỀN (CẬP NHẬT SAU) ==================== -->
+        <section id="tab-paid-content" class="hidden min-h-[60vh] flex items-center justify-center py-12 transition-all duration-300">
+            <div class="glass-panel rounded-3xl p-8 sm:p-14 max-w-2xl w-full text-center border border-amber-500/30 bg-gradient-to-b from-amber-50 via-white to-amber-50 dark:from-slate-950 dark:via-amber-950/20 dark:to-slate-950 shadow-xl dark:shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 bg-amber-500/20 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 space-y-6">
+                    <div class="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500 via-orange-400 to-yellow-300 p-1 shadow-xl shadow-amber-500/20 flex items-center justify-center animate-bounce-subtle">
+                        <div class="w-full h-full bg-white dark:bg-slate-950 rounded-2xl flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-lock text-4xl text-amber-500 dark:text-amber-400"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <span class="px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold tracking-widest uppercase">
+                            MyGames VIP Section
+                        </span>
+                        <h2 class="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight transition-colors">CẬP NHẬT SAU</h2>
+                    </div>
+                    <p class="dynamic-text-muted text-sm sm:text-base leading-relaxed max-w-md mx-auto">
+                        Khu vực trò chơi tính phí cao cấp thuộc hệ thống MyGames hiện đang được xây dựng và phát triển. Vui lòng quay lại trong các phiên bản cập nhật tiếp theo!
+                    </p>
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <button onclick="switchTab('home')" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm transition border dynamic-border">
+                            <i class="fa-solid fa-arrow-left mr-2"></i> Quay lại Trang Chủ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== GAME PLAYER MODAL / ARENA ==================== -->
+    <div id="gameModal" class="fixed inset-0 z-[100] hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl flex flex-col transition-colors">
+        <!-- MODAL HEADER BAR -->
+        <div id="gameModalHeader" class="h-16 sm:h-14 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 flex items-center justify-between shrink-0 transition-all duration-300">
+            <div class="flex items-center space-x-2 sm:space-x-3 overflow-hidden">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex items-center justify-center text-white font-black text-[10px] sm:text-xs shadow-md shrink-0">
+                    MG
+                </div>
+                <div class="min-w-0">
+                    <h3 id="modalGameTitle" class="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base leading-tight truncate">Loading...</h3>
+                    <p id="modalGameUrlText" class="text-[9px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-mono flex items-center truncate">
+                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 inline-block mr-1 sm:mr-1.5 animate-pulse shrink-0"></span>
+                        <span class="truncate">Loading URL...</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- GAME CONTROLS -->
+            <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+                 <button id="toggleHeaderBtn" onclick="toggleGameHeader()" title="Ẩn/Hiện thanh công cụ" class="hidden sm:hidden p-2 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
+                    <i id="toggleHeaderIcon" class="fa-solid fa-chevron-up"></i>
+                </button>
+                <button onclick="reloadIframe()" title="Tải lại game" class="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
+                    <i class="fa-solid fa-rotate-right text-sm"></i>
+                </button>
+                <button onclick="toggleFullscreen()" title="Toàn màn hình" class="hidden sm:block p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+                <button onclick="closeGameModal()" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs sm:text-sm transition flex items-center space-x-1.5 shadow-lg shadow-red-600/30">
+                    <i class="fa-solid fa-xmark text-base sm:text-lg"></i>
+                    <span class="hidden sm:inline">Thoát Game</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Floating Show Header Button (Visible when header is hidden in landscape) -->
+        <button id="showFloatingHeaderBtn" onclick="toggleGameHeader()" class="hidden fixed top-2 right-2 z-[110] p-2 rounded-full bg-black/50 text-white/70 hover:text-white hover:bg-black/70 backdrop-blur-md transition-all">
+            <i class="fa-solid fa-chevron-down text-sm"></i>
+        </button>
+
+        <!-- MODAL GAME IFRAME BODY -->
+        <div class="flex-grow w-full h-full bg-slate-100 dark:bg-black relative flex items-center justify-center overflow-hidden transition-colors">
+            <div id="iframeLoader" class="absolute inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 space-y-4">
+                <div class="w-16 h-16 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-slate-700 dark:text-slate-300 font-semibold text-sm">Đang tải trò chơi từ hệ thống...</p>
+            </div>
+            <iframe id="gameIframe" 
+                    src="" 
+                    class="w-full h-full border-0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; gamepad" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto border-t dynamic-border bg-slate-50 dark:bg-slate-950 py-8 px-4 text-center text-xs dynamic-text-muted transition-colors">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <span class="font-bold text-slate-700 dark:text-slate-300">MYGAMES HUB PLATFORM</span>
+                <span>© 2026</span>
+            </div>
+            <p class="font-mono text-[11px]">tungnh2858-cpu.github.io/mygames</p>
+        </div>
+    </footer>
+
+    <!-- SCRIPT & PLATFORM LOGIC -->
+    <script>
+        // ==========================================
+        // 1. CẤU TRÚC JSON LƯU TRỮ DỮ LIỆU CÁC TRÒ CHƠI
+        // ==========================================
+        const gameDatabase = [
+            {
+                id: "block_blast",
+                name: "Block Blast",
+                logo: "fa-cubes",
+                description: "Siêu phẩm xếp khối bùng nổ, phá kỷ lục điểm số trực thuộc MyGames!",
+                url: "https://tungnh2858-cpu.github.io/mygames/mygames/block_blast/main.html",
+                isFree: true,
+                badge: "HOT",
+                rating: "4.9",
+                plays: "1.2M",
+                bgColor: "from-[#8B5CF6] to-[#A855F7]",
+                author: "TungNH",
+                downloadUrl: "https://github.com/tungnh2858-cpu/mygames/tree/main/mygames/block_blast"
+            },
+            {
+                id: "ping_pong",
+                name: "Paddle Arena",
+                logo: "fa-table-tennis-paddle-ball",
+                description: "Trò chơi bóng bàn Ping Pong đỡ bóng cổ điển đầy gay cấn và rèn luyện phản xạ.",
+                url: "https://tungnh2858-cpu.github.io/mygames/mygames/ping_pong/main.html",
+                isFree: true,
+                badge: "NEW",
+                rating: "4.8",
+                plays: "950K",
+                bgColor: "from-cyan-500 to-blue-500",
+                author: "TungNH",
+                downloadUrl: "https://github.com/tungnh2858-cpu/mygames/tree/main/mygames/ping_pong"
+            },
+            {
+                id: "snake_game",
+                name: "Snake Worlds",
+                logo: "fa-staff-snake",
+                description: "Trò chơi rắn săn mồi đa vũ trụ luyện tốc độ và kỹ năng phản xạ.",
+                url: "https://tungnh2858-cpu.github.io/mygames/mygames/snake_worlds_the_grand_multiverse/main.html",
+                isFree: true,
+                badge: "NEW",
+                rating: "4.8",
+                plays: "950K",
+                bgColor: "from-green-500 to-emerald-600",
+                author: "TungNH",
+                downloadUrl: "https://github.com/tungnh2858-cpu/mygames/tree/main/mygames/snake_worlds_the_grand_multiverse"
+            },
+            {
+                id: "tetris",
+                name: "Tetris Neon Space",
+                logo: "fa-shapes",
+                description: "Huyền thoại xếp gạch Tetris thử thách khả năng sắp xếp logic và tốc độ.",
+                url: "https://tungnh2858-cpu.github.io/mygames/mygames/tetrix/main.html",
+                isFree: true,
+                badge: "CLASSIC",
+                rating: "4.7",
+                plays: "810K",
+                bgColor: "from-emerald-500 to-teal-500",
+                author: "TungNH",
+                downloadUrl: "https://github.com/tungnh2858-cpu/mygames/tree/main/mygames/tetrix"
+            },
+        ];
+
+        let activeTab = 'home';
+        let searchQuery = '';
+
+        function toggleTheme() {
+            const htmlClasses = document.documentElement.classList;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (htmlClasses.contains('dark')) {
+                htmlClasses.remove('dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                htmlClasses.add('dark');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const htmlClasses = document.documentElement.classList;
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
+                htmlClasses.remove('dark');
+                if(themeIcon) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                }
+            } else {
+                htmlClasses.add('dark');
+                if(themeIcon) {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            }
+        }
+
+        function hideIframeLoader() {
+            const loader = document.getElementById('iframeLoader');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        }
+
+        // ==========================================
+        // 2. HÀM TẠO GIAO DIỆN HỘP TRÒ CHƠI (RENDER CARD)
+        // ==========================================
+        function createCardHTML(game) {
+            const actionOnClick = game.isFree 
+                ? `launchGame('${game.url}', '${game.name}')` 
+                : "switchTab('paid')";
+                
+            const downloadLink = game.downloadUrl ? game.downloadUrl : '#';
+
+            return `
+                <div class="rounded-[20px] overflow-hidden dynamic-card-bottom border dynamic-border shadow-lg flex flex-col transition-colors duration-300">
+                    <div class="h-48 bg-gradient-to-r ${game.bgColor} relative flex flex-col justify-between p-4 rounded-b-xl">
+                        <div class="flex justify-between items-center z-10">
+                            <span class="bg-black bg-opacity-40 text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-full tracking-wider backdrop-blur-sm">
+                                ${game.badge}
+                            </span>
+                            <span class="bg-black bg-opacity-40 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                                <i class="fa-solid fa-star text-[10px]"></i> ${game.rating}
+                            </span>
+                        </div>
+                        
+                        <div class="flex-grow flex items-center justify-center z-10">
+                            <i class="fa-solid ${game.logo} text-6xl text-white drop-shadow-lg"></i>
+                        </div>
+
+                        <div class="bg-black/30 backdrop-blur-sm rounded-lg px-3 py-1.5 flex justify-between items-center text-[11px] font-medium text-white/90 z-10">
+                            <span class="flex items-center gap-2 truncate pr-2">
+                                <i class="fa-solid fa-user-pen text-xs"></i> 
+                                Author: ${game.author || 'Unknown'}
+                            </span>
+                            <span class="font-sans whitespace-nowrap flex items-center gap-1">
+                                <i class="fa-solid fa-gamepad text-[10px]"></i> ${game.plays}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-grow flex flex-col">
+                        <h4 class="font-extrabold text-xl text-slate-900 dark:text-white mb-2 transition-colors">${game.name}</h4>
+                        <p class="text-sm dynamic-text-muted mb-6 flex-grow leading-relaxed">${game.description}</p>
+                        
+                        <div class="flex gap-3 mt-auto">
+                            <button onclick="${actionOnClick}" class="flex-grow bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-violet-600/20 active:scale-[0.98]">
+                                <i class="fa-solid fa-play text-sm"></i>
+                                <span class="tracking-wide">CHƠI NGAY</span>
+                            </button>
+                            
+                            <a href="${downloadLink}" target="_blank" class="flex-shrink-0 w-14 sm:w-auto sm:px-4 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 active:scale-[0.98] border dynamic-border">
+                                <i class="fa-solid fa-download"></i>
+                                <span class="hidden sm:inline tracking-wide text-sm">TẢI VỀ</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGameCards() {
+            const homeGrid = document.getElementById('grid-home-games');
+            const freeGrid = document.getElementById('grid-free-games');
+            const gameCountHome = document.getElementById('game-count-home');
+
+            let filteredGames = gameDatabase.filter(game => {
+                const query = searchQuery.toLowerCase();
+                return game.name.toLowerCase().includes(query) || 
+                       game.description.toLowerCase().includes(query) ||
+                       (game.author && game.author.toLowerCase().includes(query));
+            });
+
+            if (gameCountHome) {
+                gameCountHome.innerText = `${filteredGames.length} Trò chơi`;
+            }
+
+            if (homeGrid) {
+                if (filteredGames.length === 0) {
+                    homeGrid.innerHTML = `<div class="col-span-full text-center py-10 dynamic-text-muted">Không tìm thấy trò chơi nào phù hợp.</div>`;
+                } else {
+                    homeGrid.innerHTML = filteredGames.map(game => createCardHTML(game)).join('');
+                }
+            }
+
+            if (freeGrid) {
+                const freeOnly = filteredGames.filter(game => game.isFree);
+                if (freeOnly.length === 0) {
+                    freeGrid.innerHTML = `<div class="col-span-full text-center py-10 dynamic-text-muted">Không có trò chơi miễn phí nào phù hợp.</div>`;
+                } else {
+                    freeGrid.innerHTML = freeOnly.map(game => createCardHTML(game)).join('');
+                }
+            }
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+
+            const tabs = ['home', 'free', 'paid'];
+            const activeBtnClass = "nav-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center space-x-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/30";
+            const inactiveBtnClass = "nav-btn px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center space-x-2 dynamic-text-muted hover:text-violet-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80";
+
+            tabs.forEach(t => {
+                const content = document.getElementById(`tab-${t}-content`);
+                const btn = document.getElementById(`nav-${t}`);
+                
+                if(content) {
+                    if(t === tab) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                }
+                
+                if(btn) {
+                    btn.className = (t === tab) ? activeBtnClass : inactiveBtnClass;
+                }
+            });
+
+            renderGameCards();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('globalSearchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (input) {
+                searchQuery = input.value.trim();
+                if (clearBtn) {
+                    if (searchQuery.length > 0) clearBtn.classList.remove('hidden');
+                    else clearBtn.classList.add('hidden');
+                }
+                
+                const mobileInput = document.getElementById('mobileSearchInput');
+                if (mobileInput && mobileInput.value !== searchQuery) {
+                    mobileInput.value = searchQuery;
+                    const clearBtnMobile = document.getElementById('clearSearchBtnMobile');
+                    if (clearBtnMobile) {
+                        if (searchQuery.length > 0) clearBtnMobile.classList.remove('hidden');
+                        else clearBtnMobile.classList.add('hidden');
+                    }
+                }
+                
+                renderGameCards();
+            }
+        }
+
+        function handleSearchMobile() {
+            const input = document.getElementById('mobileSearchInput');
+            const clearBtn = document.getElementById('clearSearchBtnMobile');
+            if (input) {
+                searchQuery = input.value.trim();
+                if (clearBtn) {
+                    if (searchQuery.length > 0) clearBtn.classList.remove('hidden');
+                    else clearBtn.classList.add('hidden');
+                }
+                
+                const desktopInput = document.getElementById('globalSearchInput');
+                if (desktopInput && desktopInput.value !== searchQuery) {
+                    desktopInput.value = searchQuery;
+                    const clearBtnDesktop = document.getElementById('clearSearchBtn');
+                    if (clearBtnDesktop) {
+                        if (searchQuery.length > 0) clearBtnDesktop.classList.remove('hidden');
+                        else clearBtnDesktop.classList.add('hidden');
+                    }
+                }
+                
+                renderGameCards();
+            }
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('globalSearchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (input) input.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+            searchQuery = '';
+            
+            const mobileInput = document.getElementById('mobileSearchInput');
+            const clearBtnMobile = document.getElementById('clearSearchBtnMobile');
+            if (mobileInput) mobileInput.value = '';
+            if (clearBtnMobile) clearBtnMobile.classList.add('hidden');
+            
+            renderGameCards();
+        }
+        
+        function clearSearchMobile() {
+            const input = document.getElementById('mobileSearchInput');
+            const clearBtn = document.getElementById('clearSearchBtnMobile');
+            if (input) input.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+            searchQuery = '';
+            
+            const desktopInput = document.getElementById('globalSearchInput');
+            const clearBtnDesktop = document.getElementById('clearSearchBtn');
+            if (desktopInput) desktopInput.value = '';
+            if (clearBtnDesktop) clearBtnDesktop.classList.add('hidden');
+            
+            renderGameCards();
+        } // FIX: Closing brace added back here!
+
+        let isHeaderHidden = false;
+
+        function launchGame(url, title) {
+            if (!url) {
+                switchTab('paid');
+                return;
+            }
+
+            const modal = document.getElementById('gameModal');
+            const iframe = document.getElementById('gameIframe');
+            const modalTitle = document.getElementById('modalGameTitle');
+            const modalUrlText = document.getElementById('modalGameUrlText');
+            const loader = document.getElementById('iframeLoader');
+
+            if (modalTitle) modalTitle.innerText = title;
+
+            const displayUrl = "https://tungnh2858-cpu.github.io/mygames/" + url.split('/').pop();
+            if (modalUrlText) {
+                modalUrlText.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 inline-block mr-1.5 animate-pulse"></span> ${displayUrl}`;
+            }
+            
+            if (loader) loader.style.display = 'flex';
+
+            if (iframe) {
+                iframe.onload = function() {
+                    hideIframeLoader();
+                };
+                iframe.src = url;
+            }
+
+            if (modal) modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            checkOrientation();
+        }
+
+        function closeGameModal() {
+            const modal = document.getElementById('gameModal');
+            const iframe = document.getElementById('gameIframe');
+            
+            if (iframe) iframe.src = '';
+            if (modal) modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            
+            const header = document.getElementById('gameModalHeader');
+            const floatingBtn = document.getElementById('showFloatingHeaderBtn');
+            if (header) {
+                header.classList.remove('hidden');
+                header.classList.remove('-translate-y-full');
+            }
+            if (floatingBtn) floatingBtn.classList.add('hidden');
+            isHeaderHidden = false;
+        }
+
+        function reloadIframe() {
+            const iframe = document.getElementById('gameIframe');
+            const loader = document.getElementById('iframeLoader');
+            if (iframe && iframe.src) {
+                if (loader) loader.style.display = 'flex';
+                iframe.src = iframe.src;
+            }
+        }
+
+        function toggleFullscreen() {
+            const modal = document.getElementById('gameModal');
+            if (!document.fullscreenElement) {
+                if (modal && modal.requestFullscreen) {
+                    modal.requestFullscreen().catch(err => console.log(err.message));
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        
+        function checkOrientation() {
+            const modal = document.getElementById('gameModal');
+            const toggleBtn = document.getElementById('toggleHeaderBtn');
+            const floatingBtn = document.getElementById('showFloatingHeaderBtn');
+            
+            if (!modal || modal.classList.contains('hidden')) return;
+
+            const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+            const isMobile = window.innerHeight < 500; 
+
+            if (isLandscape && isMobile) {
+                if (toggleBtn) toggleBtn.classList.remove('hidden');
+                if (!isHeaderHidden) {
+                    toggleGameHeader(true);
+                }
+            } else {
+                if (toggleBtn) toggleBtn.classList.add('hidden');
+                if (isHeaderHidden) {
+                    toggleGameHeader(false);
+                }
+                if (floatingBtn) floatingBtn.classList.add('hidden');
+            }
+        }
+
+        function toggleGameHeader(forceHide = null) {
+            const header = document.getElementById('gameModalHeader');
+            const floatingBtn = document.getElementById('showFloatingHeaderBtn');
+            
+            if (!header) return;
+
+            if (forceHide === true || (!isHeaderHidden && forceHide === null)) {
+                header.classList.add('-translate-y-full', 'absolute', 'w-full', 'opacity-0');
+                setTimeout(() => {
+                    if (isHeaderHidden) header.classList.add('hidden');
+                }, 300);
+                
+                if (floatingBtn) floatingBtn.classList.remove('hidden');
+                isHeaderHidden = true;
+            } else {
+                header.classList.remove('hidden');
+                setTimeout(() => {
+                    header.classList.remove('-translate-y-full', 'absolute', 'w-full', 'opacity-0');
+                }, 10);
+                
+                if (floatingBtn) floatingBtn.classList.add('hidden');
+                isHeaderHidden = false;
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(checkOrientation, 200);
+        });
+
+        window.onload = function() {
+            initTheme(); 
+            switchTab('home');
+        };
+    </script>
+</body>
+</html>
